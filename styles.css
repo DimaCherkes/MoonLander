@@ -1,0 +1,14 @@
+body {
+    margin: 0;
+    padding: 0;
+    background: #000; /* фон космоса */
+    color: #fff;
+    font-family: sans-serif;
+}
+
+canvas {
+    display: block;
+    margin: 0 auto;
+    background-color: #000; /* Резервный цвет фона */
+    border: 1px solid #333;
+}

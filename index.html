@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Лунная посадка</title>
+
+    <!-- PWA: Иконка, цвет темы, манифест -->
+    <link rel="icon" href="assets/rocket.png">
+    <meta name="theme-color" content="#000000" />
+    <link rel="manifest" href="manifest.json" />
+
+    <!-- Стили -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<canvas id="gameCanvas" width="600" height="600"></canvas>
+
+<!-- Скрипт с игровой логикой -->
+<script src="script.js"></script>
+
+<!-- Регистрация Service Worker (PWA) -->
+<script>
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('sw.js')
+                .then(() => console.log('Service Worker зарегистрирован!'))
+                .catch(err => console.log('SW регистрация не удалась: ', err));
+        });
+    }
+</script>
+</body>
+</html>
