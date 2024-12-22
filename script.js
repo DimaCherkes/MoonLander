@@ -13,34 +13,39 @@ let sidePower = 0.1;   // Сила боковых двигателей
 let fuel = 100;        // Запас топлива (можно отключить)
 
 // Параметры ракеты
-let rocketWidth = 20;
-let rocketHeight = 40;
+let rocketWidth = 20;  // Ширина ракеты
+let rocketHeight = 40; // Высота ракеты
 
 // Начальное положение ракеты (по центру сверху)
 let x = WIDTH / 2;
 let y = 100;
 
 // Скорости по осям
-let speedX = 0;
-let speedY = 0;
+let speedX = 0; // Горизонтальная скорость
+let speedY = 0; // Вертикальная скорость
 
-// Угол ракеты (опционально, если хотим вращать спрайт)
+// Угол ракеты (для наклона)
 let angle = 0;
 
 // Флаги нажатия клавиш
-let upPressed = false;
-let leftPressed = false;
-let rightPressed = false;
+let upPressed = false;    // Вверх
+let leftPressed = false;  // Влево
+let rightPressed = false; // Вправо
+
+// Управление гироскопом
+let tiltX = 0; // Наклон по горизонтали
+let tiltY = 0; // Наклон по вертикали
+let touchActive = false; // Флаг удержания касания на экране
 
 // Простой массив точек ландшафта
 const terrainPoints = [
-    { x: 0,   y: HEIGHT - 50 },
-    { x: 100, y: HEIGHT - 80 },
-    { x: 200, y: HEIGHT - 60 },
-    { x: 300, y: HEIGHT - 100 },
-    { x: 400, y: HEIGHT - 90 },
-    { x: 500, y: HEIGHT - 70 },
-    { x: 600, y: HEIGHT - 60 },
+    { x: 0,   y: HEIGHT - 50 },  // Точка 1
+    { x: 100, y: HEIGHT - 80 }, // Точка 2
+    { x: 200, y: HEIGHT - 60 }, // Точка 3
+    { x: 300, y: HEIGHT - 100 },// Точка 4
+    { x: 400, y: HEIGHT - 90 }, // Точка 5
+    { x: 500, y: HEIGHT - 70 }, // Точка 6
+    { x: 600, y: HEIGHT - 60 }, // Точка 7
 ];
 
 // Порог скорости, при котором посадка считается мягкой
@@ -49,56 +54,48 @@ const landingSpeedThreshold = 2.0;
 // Функция для отрисовки ландшафта
 function drawTerrain() {
     ctx.beginPath();
-    ctx.moveTo(terrainPoints[0].x, terrainPoints[0].y);
+    ctx.moveTo(terrainPoints[0].x, terrainPoints[0].y); // Начальная точка
     for (let i = 1; i < terrainPoints.length; i++) {
-        ctx.lineTo(terrainPoints[i].x, terrainPoints[i].y);
+        ctx.lineTo(terrainPoints[i].x, terrainPoints[i].y); // Соединяем точки
     }
-    ctx.strokeStyle = '#fff';
-    ctx.lineWidth = 2;
+    ctx.strokeStyle = '#fff'; // Цвет линии
+    ctx.lineWidth = 2;        // Толщина линии
     ctx.stroke();
     ctx.closePath();
 }
 
 // Функция для проверки высоты ландшафта в заданной x-координате
 function getTerrainHeightAtX(xCoord) {
-    // Упрощённый метод: идём по сегментам в массиве terrainPoints
     for (let i = 0; i < terrainPoints.length - 1; i++) {
         let p1 = terrainPoints[i];
         let p2 = terrainPoints[i + 1];
-
-        // Если xCoord в пределах между p1.x и p2.x, интерполируем высоту
         if (xCoord >= p1.x && xCoord <= p2.x) {
             let dx = p2.x - p1.x;
             let dy = p2.y - p1.y;
             let ratio = (xCoord - p1.x) / dx;  // Доля отрезка
-            return p1.y + dy * ratio;
+            return p1.y + dy * ratio; // Интерполяция высоты
         }
     }
-    // Если вне диапазона, возвращаем высоту самой последней точки
-    return terrainPoints[terrainPoints.length - 1].y;
+    return terrainPoints[terrainPoints.length - 1].y; // Если за пределами, возвращаем последнюю высоту
 }
 
 // Отрисовка ракеты
 function drawRocket() {
     ctx.save();
-    ctx.translate(x, y);
-    // Если хотим поворачивать ракету по углу:
-    ctx.rotate(angle);
-
-    // Тело ракеты (простая белая капсула)
+    ctx.translate(x, y);  // Перемещение в координаты ракеты
+    ctx.rotate(angle);    // Поворот ракеты
     ctx.fillStyle = 'white';
-    ctx.fillRect(-rocketWidth / 2, -rocketHeight / 2, rocketWidth, rocketHeight);
+    ctx.fillRect(-rocketWidth / 2, -rocketHeight / 2, rocketWidth, rocketHeight); // Рисуем ракету
 
-    // Простой «огонь» при нажатии вверх (для красоты)
-    if (upPressed && fuel > 0) {
+    // Эффект огня при включённом двигателе
+    if ((upPressed || touchActive) && fuel > 0) {
         ctx.fillStyle = 'orange';
         ctx.beginPath();
         ctx.moveTo(-rocketWidth / 4, rocketHeight / 2);
         ctx.lineTo(rocketWidth / 4, rocketHeight / 2);
-        ctx.lineTo(0, rocketHeight / 2 + 10 + Math.random() * 5); // немножко рандома
+        ctx.lineTo(0, rocketHeight / 2 + 10 + Math.random() * 5); // Эффект пламени
         ctx.fill();
     }
-
     ctx.restore();
 }
 
@@ -128,50 +125,57 @@ document.addEventListener('keyup', (e) => {
     }
 });
 
-// Основной игровой цикл
-function gameLoop() {
-    // Очищаем Canvas
-    ctx.clearRect(0, 0, WIDTH, HEIGHT);
-
-    // Обновляем физику
-    updatePhysics();
-
-    // Рисуем ландшафт
-    drawTerrain();
-
-    // Рисуем ракету
-    drawRocket();
-
-    // Запрашиваем следующий кадр
-    requestAnimationFrame(gameLoop);
+// Обработка гироскопа
+if (window.DeviceOrientationEvent) {
+    window.addEventListener('deviceorientation', (event) => {
+        tiltX = event.gamma; // Наклон влево/вправо
+        tiltY = event.beta;  // Наклон вверх/вниз
+    });
 }
 
-// Логика физики, движение, гравитация и т.д.
-function updatePhysics() {
-    // Применяем гравитацию
-    speedY += gravity;
+// Обработка касания
+document.addEventListener('touchstart', () => {
+    touchActive = true; // Включаем флаг при касании
+});
 
-    // Управление ракетой
-    if (upPressed && fuel > 0) {
+document.addEventListener('touchend', () => {
+    touchActive = false; // Выключаем флаг при завершении касания
+});
+
+// Основной игровой цикл
+function gameLoop() {
+    ctx.clearRect(0, 0, WIDTH, HEIGHT); // Очищаем Canvas
+    updatePhysics(); // Обновляем физику
+    drawTerrain();   // Рисуем ландшафт
+    drawRocket();    // Рисуем ракету
+    requestAnimationFrame(gameLoop); // Следующий кадр
+}
+
+// Логика физики
+function updatePhysics() {
+    speedY += gravity; // Применяем гравитацию
+
+    // Управление двигателем
+    if ((upPressed || touchActive) && fuel > 0) {
         speedY -= thrustPower;
-        fuel -= 0.1; // расход топлива
+        fuel -= 0.1; // Расход топлива
     }
-    if (leftPressed && fuel > 0) {
+
+    // Управление боковыми двигателями
+    if ((tiltX < -5 || leftPressed) && fuel > 0) {
         speedX -= sidePower;
         fuel -= 0.05;
-        angle = -0.1; // лёгкий наклон для эффекта
-    } else if (rightPressed && fuel > 0) {
+        angle = -0.1; // Наклон влево
+    } else if ((tiltX > 5 || rightPressed) && fuel > 0) {
         speedX += sidePower;
         fuel -= 0.05;
-        angle = 0.1;
+        angle = 0.1; // Наклон вправо
     } else {
-        // Если не жмём влево/вправо — угол восстанавливаем к 0
-        angle *= 0.9;
+        angle *= 0.9; // Плавное восстановление угла
     }
 
-    // Обновляем координаты
-    x += speedX;
-    y += speedY;
+    x += speedX; // Обновляем положение по X
+    y += speedY; // Обновляем положение по Y
 
     // Проверка границ экрана
     if (x < 0) {
@@ -187,34 +191,30 @@ function updatePhysics() {
         speedY = 0;
     }
 
-    // Проверка столкновения с ландшафтом:
-    // Берём нижнюю точку ракеты (примерно y + rocketHeight / 2)
-    let rocketBottomY = y + rocketHeight / 2;
-    let terrainY = getTerrainHeightAtX(x);
+    // Проверка столкновения с ландшафтом
+    let rocketBottomY = y + rocketHeight / 2; // Нижняя точка ракеты
+    let terrainY = getTerrainHeightAtX(x);   // Высота ландшафта
 
     if (rocketBottomY >= terrainY) {
-        // «Касание» поверхности — проверяем скорость
         if (Math.abs(speedY) > landingSpeedThreshold || Math.abs(speedX) > landingSpeedThreshold) {
-            // Считаем, что разбились
-            alert('Вы разбились! Скорость была слишком велика.');
+            alert('Вы разбились! Скорость была слишком велика.'); // Неудачная посадка
             resetGame();
         } else {
-            // Мягкая посадка
-            alert('Посадка удалась! Поздравляем!');
+            alert('Посадка удалась! Поздравляем!'); // Успешная посадка
             resetGame();
         }
     }
 }
 
-// Сброс игры (перезапуск)
+// Сброс игры
 function resetGame() {
-    x = WIDTH / 2;
+    x = WIDTH / 2; // Сбрасываем положение ракеты
     y = 100;
     speedX = 0;
     speedY = 0;
-    fuel = 100;
-    angle = 0;
+    fuel = 100;  // Восстанавливаем топливо
+    angle = 0;   // Угол
 }
 
-// Запуск
+// Запуск игрового цикла
 gameLoop();
