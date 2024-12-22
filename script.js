@@ -40,14 +40,56 @@ let tiltY = 0; // Наклон по вертикали
 let touchActive = false; // Флаг удержания касания на экране
 
 // Простой массив точек ландшафта
-const terrainPoints = [
-    { x: 0,   y: HEIGHT - 50 },  // Точка 1
-    { x: 100, y: HEIGHT - 80 }, // Точка 2
-    { x: 200, y: HEIGHT - 60 }, // Точка 3
-    { x: 300, y: HEIGHT - 100 },// Точка 4
-    { x: 400, y: HEIGHT - 90 }, // Точка 5
-    { x: 500, y: HEIGHT - 70 }, // Точка 6
-    { x: 600, y: HEIGHT - 60 }, // Точка 7
+const terrainPoints =  [
+    { x: 0 * SQUARE_SIZE, y: HEIGHT - 4 * SQUARE_SIZE },
+    { x: 1 * SQUARE_SIZE, y: HEIGHT - 4 * SQUARE_SIZE },
+    { x: 1 * SQUARE_SIZE, y: HEIGHT - 3 * SQUARE_SIZE },
+    { x: 2 * SQUARE_SIZE, y: HEIGHT - 3 * SQUARE_SIZE },
+    { x: 2 * SQUARE_SIZE, y: HEIGHT - 5 * SQUARE_SIZE },
+    { x: 3 * SQUARE_SIZE, y: HEIGHT - 5 * SQUARE_SIZE },
+    { x: 3 * SQUARE_SIZE, y: HEIGHT - 3 * SQUARE_SIZE },
+    { x: 5 * SQUARE_SIZE, y: HEIGHT - 3 * SQUARE_SIZE },
+    { x: 5 * SQUARE_SIZE, y: HEIGHT - 6 * SQUARE_SIZE },
+    { x: 5 * SQUARE_SIZE, y: HEIGHT - 7 * SQUARE_SIZE },
+    { x: 6 * SQUARE_SIZE, y: HEIGHT - 7 * SQUARE_SIZE },
+    { x: 6 * SQUARE_SIZE, y: HEIGHT - 10 * SQUARE_SIZE },
+    { x: 8 * SQUARE_SIZE, y: HEIGHT - 10 * SQUARE_SIZE },
+    { x: 8 * SQUARE_SIZE, y: HEIGHT - 9 * SQUARE_SIZE },
+    { x: 9 * SQUARE_SIZE, y: HEIGHT - 9 * SQUARE_SIZE },
+    { x: 9 * SQUARE_SIZE, y: HEIGHT - 12 * SQUARE_SIZE },
+    { x: 10 * SQUARE_SIZE, y: HEIGHT - 12 * SQUARE_SIZE },
+    { x: 10 * SQUARE_SIZE, y: HEIGHT - 11 * SQUARE_SIZE },
+    { x: 12 * SQUARE_SIZE, y: HEIGHT - 11 * SQUARE_SIZE },
+    { x: 12 * SQUARE_SIZE, y: HEIGHT - 10 * SQUARE_SIZE },
+    { x: 13 * SQUARE_SIZE, y: HEIGHT - 10 * SQUARE_SIZE },
+    { x: 13 * SQUARE_SIZE, y: HEIGHT - 9 * SQUARE_SIZE },
+    { x: 14 * SQUARE_SIZE, y: HEIGHT - 9 * SQUARE_SIZE },
+    { x: 14 * SQUARE_SIZE, y: HEIGHT - 8 * SQUARE_SIZE },
+    { x: 22 * SQUARE_SIZE, y: HEIGHT - 8 * SQUARE_SIZE },
+    { x: 22 * SQUARE_SIZE, y: HEIGHT - 10 * SQUARE_SIZE },
+    { x: 24 * SQUARE_SIZE, y: HEIGHT - 10 * SQUARE_SIZE },
+    { x: 24 * SQUARE_SIZE, y: HEIGHT - 7 * SQUARE_SIZE },
+    { x: 25 * SQUARE_SIZE, y: HEIGHT - 7 * SQUARE_SIZE },
+    { x: 25 * SQUARE_SIZE, y: HEIGHT - 6 * SQUARE_SIZE },
+    { x: 27 * SQUARE_SIZE, y: HEIGHT - 6 * SQUARE_SIZE },
+    { x: 27 * SQUARE_SIZE, y: HEIGHT - 9 * SQUARE_SIZE },
+    { x: 29 * SQUARE_SIZE, y: HEIGHT - 9 * SQUARE_SIZE },
+    { x: 29 * SQUARE_SIZE, y: HEIGHT - 13 * SQUARE_SIZE },
+    { x: 30 * SQUARE_SIZE, y: HEIGHT - 13 * SQUARE_SIZE },
+    { x: 30 * SQUARE_SIZE, y: HEIGHT - 14 * SQUARE_SIZE },
+    { x: 31 * SQUARE_SIZE, y: HEIGHT - 14 * SQUARE_SIZE },
+    { x: 31 * SQUARE_SIZE, y: HEIGHT - 16 * SQUARE_SIZE },
+    { x: 33 * SQUARE_SIZE, y: HEIGHT - 16 * SQUARE_SIZE },
+    { x: 33 * SQUARE_SIZE, y: HEIGHT - 17 * SQUARE_SIZE },
+    { x: 35 * SQUARE_SIZE, y: HEIGHT - 17 * SQUARE_SIZE },
+    { x: 35 * SQUARE_SIZE, y: HEIGHT - 15 * SQUARE_SIZE },
+    { x: 36 * SQUARE_SIZE, y: HEIGHT - 15 * SQUARE_SIZE },
+    { x: 36 * SQUARE_SIZE, y: HEIGHT - 11 * SQUARE_SIZE },
+    { x: 38 * SQUARE_SIZE, y: HEIGHT - 11 * SQUARE_SIZE },
+    { x: 38 * SQUARE_SIZE, y: HEIGHT - 12 * SQUARE_SIZE },
+    { x: 39 * SQUARE_SIZE, y: HEIGHT - 12 * SQUARE_SIZE },
+    { x: 39 * SQUARE_SIZE, y: HEIGHT - 13 * SQUARE_SIZE },
+    { x: 40 * SQUARE_SIZE, y: HEIGHT - 13 * SQUARE_SIZE }
 ];
 
 // Порог скорости, при котором посадка считается мягкой
