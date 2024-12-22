@@ -176,11 +176,11 @@ function updatePhysics() {
     }
 
     // Управление боковыми двигателями
-    if ((tiltX < -5 || leftPressed) && fuel > 0) {
+    if ((tiltX < -5 || leftPressed) && fuel > 0 && (upPressed || touchActive)) {
         speedX -= sidePower;
         fuel -= 0.05;
         angle = -0.1; // Наклон влево
-    } else if ((tiltX > 5 || rightPressed) && fuel > 0) {
+    } else if ((tiltX > 5 || rightPressed) && fuel > 0 && (upPressed || touchActive)) {
         speedX += sidePower;
         fuel -= 0.05;
         angle = 0.1; // Наклон вправо
@@ -228,6 +228,10 @@ function resetGame() {
     speedY = 0;
     fuel = 100;  // Восстанавливаем топливо
     angle = 0;   // Угол
+    upPressed = false;    // Сбрасываем флаг нажатия "вверх"
+    leftPressed = false;  // Сбрасываем флаг нажатия "влево"
+    rightPressed = false; // Сбрасываем флаг нажатия "вправо"
+    touchActive = false;  // Сбрасываем касание экрана
 }
 
 // Запуск игрового цикла
