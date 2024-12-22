@@ -13,8 +13,10 @@ let sidePower = 0.1;   // Сила боковых двигателей
 let fuel = 100;        // Запас топлива (можно отключить)
 
 // Параметры ракеты
-let rocketWidth = 20;  // Ширина ракеты
-let rocketHeight = 40; // Высота ракеты
+let rocketWidth = 30;  // Ширина ракеты
+let rocketHeight = 50; // Высота ракеты
+const rocketImage = new Image();
+rocketImage.src = 'assets/rocket.png'; // Укажите путь к изображению ракеты
 
 // Начальное положение ракеты (по центру сверху)
 let x = WIDTH / 2;
@@ -85,7 +87,8 @@ function drawRocket() {
     ctx.translate(x, y);  // Перемещение в координаты ракеты
     ctx.rotate(angle);    // Поворот ракеты
     ctx.fillStyle = 'white';
-    ctx.fillRect(-rocketWidth / 2, -rocketHeight / 2, rocketWidth, rocketHeight); // Рисуем ракету
+    //ctx.fillRect(-rocketWidth / 2, -rocketHeight / 2, rocketWidth, rocketHeight); // Рисуем ракету
+    ctx.drawImage(rocketImage, -rocketWidth / 2, -rocketHeight / 2, rocketWidth, rocketHeight);
 
     // Эффект огня при включённом двигателе
     if ((upPressed || touchActive) && fuel > 0) {
