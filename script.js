@@ -13,10 +13,10 @@ let sidePower = 0.1;   // Сила боковых двигателей
 let fuel = 100;        // Запас топлива (можно отключить)
 
 // Параметры ракеты
-let rocketWidth = 30;  // Ширина ракеты
-let rocketHeight = 50; // Высота ракеты
+let rocketWidth = 50;  // Ширина ракеты
+let rocketHeight = 80; // Высота ракеты
 const rocketImage = new Image();
-rocketImage.src = 'assets/rocket.png'; // Укажите путь к изображению ракеты
+rocketImage.src = 'assets/rocket_without_power.png'; // Укажите путь к изображению ракеты
 
 // Начальное положение ракеты (по центру сверху)
 let x = WIDTH / 2;
@@ -56,12 +56,12 @@ const landingSpeedThreshold = 2.0;
 // Функция для отрисовки ландшафта
 function drawTerrain() {
     ctx.beginPath();
-    ctx.moveTo(terrainPoints[0].x, terrainPoints[0].y); // Начальная точка
+    ctx.moveTo(terrainPoints[0].x, terrainPoints[0].y);
     for (let i = 1; i < terrainPoints.length; i++) {
-        ctx.lineTo(terrainPoints[i].x, terrainPoints[i].y); // Соединяем точки
+        ctx.lineTo(terrainPoints[i].x, terrainPoints[i].y);
     }
-    ctx.strokeStyle = '#fff'; // Цвет линии
-    ctx.lineWidth = 2;        // Толщина линии
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 2;
     ctx.stroke();
     ctx.closePath();
 }
@@ -94,9 +94,20 @@ function drawRocket() {
     if ((upPressed || touchActive) && fuel > 0) {
         ctx.fillStyle = 'orange';
         ctx.beginPath();
-        ctx.moveTo(-rocketWidth / 4, rocketHeight / 2);
-        ctx.lineTo(rocketWidth / 4, rocketHeight / 2);
-        ctx.lineTo(0, rocketHeight / 2 + 10 + Math.random() * 5); // Эффект пламени
+/*        ctx.moveTo(-rocketWidth / 2, rocketHeight / 2);
+        ctx.lineTo(0, rocketHeight / 2);
+        ctx.lineTo(-rocketWidth / 4, rocketHeight / 2 + 10 + Math.random() * 5); // Эффект пламени*/
+
+        //Левый
+        ctx.moveTo((-rocketWidth / 2) + 2, rocketHeight / 2);
+        ctx.lineTo(-2, rocketHeight / 2);
+        ctx.lineTo(-rocketWidth / 4, rocketHeight / 2 + 10 + Math.random() * 5);
+        ctx.fill();
+        //Правый
+        ctx.beginPath();
+        ctx.moveTo((rocketWidth / 2) - 2, rocketHeight / 2);
+        ctx.lineTo(2, rocketHeight / 2);
+        ctx.lineTo(rocketWidth / 4, rocketHeight / 2 + 10 + Math.random() * 5);
         ctx.fill();
     }
     ctx.restore();
