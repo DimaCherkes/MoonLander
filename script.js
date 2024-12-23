@@ -15,7 +15,7 @@ let fuel = 100;        // Запас топлива (можно отключит
 
 // Параметры ракеты
 let rocketWidth = 50;  // Ширина ракеты
-let rocketHeight = 80; // Высота ракеты
+let rocketHeight = 60; // Высота ракеты
 const rocketImage = new Image();
 rocketImage.src = 'assets/rocket_without_power.png'; // Укажите путь к изображению ракеты
 
@@ -97,7 +97,8 @@ function drawRocket() {
     ctx.save();
     ctx.translate(x, y);  // Перемещение в координаты ракеты
     ctx.rotate(angle);    // Поворот ракеты
-    ctx.fillStyle = 'white';
+/*    ctx.fillStyle = 'red';
+    ctx.fillRect(-rocketWidth / 2, -rocketHeight / 2, rocketWidth, rocketHeight);*/
     //ctx.fillRect(-rocketWidth / 2, -rocketHeight / 2, rocketWidth, rocketHeight); // Рисуем ракету
     ctx.drawImage(rocketImage, -rocketWidth / 2, -rocketHeight / 2, rocketWidth, rocketHeight);
 
@@ -122,8 +123,49 @@ function drawRocket() {
         ctx.fill();
     }
     ctx.restore();
+    // Визуализация углов ракеты
+    drawRocketPoints();
 }
+//Метод для отрисовки точек столкновения.
+function drawRocketPoints() {
+    // Углы нашей ракеты
+    const rocketLeftX = x - rocketWidth / 2 + 2;
+    const rocketRightX = x + rocketWidth / 2 - 2 ;
+    const rocketTopY = y - rocketHeight / 2;
+    const rocketBottomY = y + rocketHeight / 2;
+    const rocketMiddleLeftX = x - rocketWidth / 4;
+    const rocketMiddleRightX = x + rocketWidth / 4;
+    ctx.fillStyle = 'blue';
+    // Верхний левый угол
+    ctx.beginPath();
+    ctx.arc(rocketLeftX, rocketTopY, 3, 0, 2 * Math.PI);
+    ctx.fill();
+    // Верхний правый угол
+    ctx.beginPath();
+    ctx.arc(rocketRightX, rocketTopY, 3, 0, 2 * Math.PI);
+    ctx.fill();
+    // Нижний левый угол
+    ctx.beginPath();
+    ctx.arc(rocketLeftX, rocketBottomY, 3, 0, 2 * Math.PI);
+    ctx.fill();
+    // Нижний правый угол
+    ctx.beginPath();
+    ctx.arc(rocketRightX, rocketBottomY, 3, 0, 2 * Math.PI);
+    ctx.fill();
+    // Центральная нижняя точка
+    ctx.beginPath();
+    ctx.arc(x, rocketBottomY, 3, 0, 2 * Math.PI);
+    ctx.fill();
 
+    // Точка между левым нижним углом и нижней центральной точкой
+    ctx.beginPath();
+    ctx.arc(rocketMiddleLeftX, rocketBottomY, 3, 0, 2 * Math.PI);
+    ctx.fill();
+    // Точка между правым нижним углом и нижней центральной точкой
+    ctx.beginPath();
+    ctx.arc(rocketMiddleRightX, rocketBottomY, 3, 0, 2 * Math.PI);
+    ctx.fill();
+}
 // Обработка нажатия клавиш
 document.addEventListener('keydown', (e) => {
     if (e.code === 'ArrowUp' || e.code === 'KeyW') {
@@ -202,35 +244,63 @@ function updatePhysics() {
     x += speedX; // Обновляем положение по X
     y += speedY; // Обновляем положение по Y
 
-    // Проверка границ экрана
-    if (x < 0) {
-        x = 0;
-        speedX = 0;
-    }
-    if (x > WIDTH) {
-        x = WIDTH;
-        speedX = 0;
-    }
-    if (y < 0) {
-        y = 0;
-        speedY = 0;
+    // Проверка столкновений
+    checkCollision();
+}
+function checkCollision() {
+    // Координаты сторон ракеты
+    const rocketLeftX = x - rocketWidth / 2 + 2;
+    const rocketRightX = x + rocketWidth / 2 - 2;
+    const rocketTopY = y - rocketHeight / 2;
+    const rocketBottomY = y + rocketHeight / 2;
+
+    // Проверка столкновения с ландшафтом для каждой стороны
+    const leftTerrainHeight = getTerrainHeightAtX(rocketLeftX);
+    const rightTerrainHeight = getTerrainHeightAtX(rocketRightX);
+    const centerTerrainHeight = getTerrainHeightAtX(x);
+    //Это я сделал доп проверки на приземление, чтобы избежать неккоректной посадки
+    const rocketMiddleLeftX = x - rocketWidth / 4;
+    const rocketMiddleRightX = x + rocketWidth / 4;
+    const middleLeftTerrainHeight = getTerrainHeightAtX(rocketMiddleLeftX);
+    const middleRightTerrainHeight = getTerrainHeightAtX(rocketMiddleRightX);
+
+    // Проверка боковых сторон
+    if (rocketLeftX < 0 || rocketRightX > WIDTH) {
+        alert('Столкновение с краем экрана.');
+        resetGame();
+        return;
     }
 
-    // Проверка столкновения с ландшафтом
-    let rocketBottomY = y + rocketHeight / 2; // Нижняя точка ракеты
-    let terrainY = getTerrainHeightAtX(x);   // Высота ландшафта
+    // Проверка верхней стороны
+    if (rocketTopY < 0) {
+        alert('Столкновение верхней частью.');
+        resetGame();
+        return;
+    }
 
-    if (rocketBottomY >= terrainY) {
+    // Проверка нижней стороны
+    if (rocketBottomY >= centerTerrainHeight) {
         if (Math.abs(speedY) > landingSpeedThreshold || Math.abs(speedX) > landingSpeedThreshold) {
-            alert('Вы разбились! Скорость была слишком велика.'); // Неудачная посадка
-            resetGame();
-        } else {
-            alert('Посадка удалась! Поздравляем!'); // Успешная посадка
-            resetGame();
+            alert('Неправильное приземление.');
         }
+        else if(leftTerrainHeight !== rightTerrainHeight ||
+            rightTerrainHeight !== centerTerrainHeight){
+            alert('Неправильное приземление. Ракета должна полностью сесть на поверхность.');
+        }
+        else {
+            alert('Посадка удалась! Поздравляем!');
+        }
+        resetGame();
+        return;
+    }
+
+    // Проверка столкновения левых и правых сторон
+    if (rocketBottomY >= leftTerrainHeight || rocketBottomY >= rightTerrainHeight
+        || rocketBottomY >= middleLeftTerrainHeight || rocketBottomY >= middleRightTerrainHeight) {
+        alert('Столкновение!');
+        resetGame();
     }
 }
-
 // Сброс игры
 function resetGame() {
     x = WIDTH / 2; // Сбрасываем положение ракеты
