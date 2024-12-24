@@ -12,16 +12,18 @@ let gravity = 0.1;     // Гравитация
 let thrustPower = 0.2; // Сила основного двигателя (вертикаль)
 let sidePower = 0.1;   // Сила боковых двигателей
 let fuel = 100;        // Запас топлива (можно отключить)
+let onGround = true;
 
 // Параметры ракеты
 let rocketWidth = 50;  // Ширина ракеты
 let rocketHeight = 60; // Высота ракеты
 const rocketImage = new Image();
 rocketImage.src = 'assets/rocket_without_power.png'; // Укажите путь к изображению ракеты
+const rocketImagePixelsNumber = 10;
 
 // Начальное положение ракеты (по центру сверху)
-let x = WIDTH / 2;
-let y = 100;
+let x;
+let y;
 
 // Координаты сторон ракеты слева на право
 let rocketLeftX = x - rocketWidth / 2 + 2;
@@ -51,6 +53,7 @@ let touchActive = false; // Флаг удержания касания на эк
 // Простой массив точек ландшафта
 let terrainPoints = [];
 let landingZone;
+let startZone;
 
 // Порог скорости, при котором посадка считается мягкой
 const landingSpeedThreshold = 2.0;
@@ -80,6 +83,11 @@ function loadTerrain() {
                 y: HEIGHT - point.y * SQUARE_SIZE
             }));
             landingZone = data.landingZone;
+            startZone = data.startZone;
+
+            // формула для расчета стартового положения ракеты
+            x = terrainPoints[startZone].x + (rocketWidth / 2) + 5;
+            y = terrainPoints[startZone].y - (rocketHeight / 2);
             gameLoop(); // Запускаем игровой цикл после загрузки данных
         })
         .catch((error) => {
@@ -87,38 +95,40 @@ function loadTerrain() {
         });
 }
 
+// Функция для отрисовки ландшафта
 function drawTerrain() {
-    // 1) Рисуем белый путь до индекса landingZone (не включая)
+    // 1) Сначала рисуем весь ландшафт белым цветом
     ctx.beginPath();
     ctx.moveTo(terrainPoints[0].x, terrainPoints[0].y);
-    for (let i = 1; i < landingZone + 1; i++) {
+    for (let i = 1; i < terrainPoints.length; i++) {
         ctx.lineTo(terrainPoints[i].x, terrainPoints[i].y);
     }
     ctx.strokeStyle = '#fff';
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 2; // толщина белой линии
     ctx.stroke();
     ctx.closePath();
 
-    // 2) Отдельно рисуем зелёный отрезок c landingZone до следующей точки
+    // 2) Поверх рисуем landingZone
     ctx.beginPath();
+    // используем landingZone и landingZone + 1
     ctx.moveTo(terrainPoints[landingZone].x, terrainPoints[landingZone].y);
     ctx.lineTo(terrainPoints[landingZone + 1].x, terrainPoints[landingZone + 1].y);
-    ctx.strokeStyle = 'green'; // <-- зелёный цвет
-    ctx.lineWidth = 2;
+    ctx.strokeStyle = 'green';
+    ctx.lineWidth = 3; // толщина зелёной линии
     ctx.stroke();
     ctx.closePath();
 
-    // 3) Дорисовываем оставшуюся часть пути (с landingZone и по конец)
+    // 2) Поверх рисуем landingZone
     ctx.beginPath();
-    ctx.moveTo(terrainPoints[landingZone + 1].x, terrainPoints[landingZone + 1].y);
-    for (let i = landingZone + 2; i < terrainPoints.length; i++) {
-        ctx.lineTo(terrainPoints[i].x, terrainPoints[i].y);
-    }
-    ctx.strokeStyle = '#fff';
-    ctx.lineWidth = 2;
+    // используем landingZone и landingZone + 1
+    ctx.moveTo(terrainPoints[startZone].x, terrainPoints[startZone].y);
+    ctx.lineTo(terrainPoints[startZone + 1].x, terrainPoints[startZone + 1].y);
+    ctx.strokeStyle = '#16e1e1';
+    ctx.lineWidth = 3; // толщина зелёной линии
     ctx.stroke();
     ctx.closePath();
 }
+
 
 // Функция для проверки высоты ландшафта в заданной x-координате
 function getTerrainHeightAtX(xCoord) {
@@ -212,10 +222,14 @@ function gameLoop() {
 
 // Логика физики
 function updatePhysics() {
-    speedY += gravity; // Применяем гравитацию
+    if (!onGround) {
+        speedY += gravity; // Применяем гравитацию
+    }
 
     // Управление двигателем
     if ((upPressed || touchActive) && fuel > 0) {
+        if (onGround)
+            onGround =  false;
         speedY -= thrustPower;
         fuel -= 0.1; // Расход топлива
     }
@@ -263,7 +277,16 @@ function updatePhysics() {
         case 3: alert(gameMessageArray[3]); resetGame(); break;
         case 4: alert(gameMessageArray[4]); resetGame(); break;
         case 5: alert(gameMessageArray[5]); resetGame(); break;
+        case 6:
+            if (rocketBottomY >= terrainPoints[startZone].y){
+                console.log("startzone ...")
+                y = terrainPoints[startZone].y - rocketHeight / 2;
+                speedX = 0;
+                speedY = 0;
+                onGround = true;
+            }
     }
+
 }
 
 // Проверка правильной посадочной зоны
@@ -275,6 +298,15 @@ function checkLandingZone(){
     return !(rocketLeftX < x0 || rocketRightX > x1);
 }
 
+// Проверка правильной стартовой зоны
+function checkStartingZone(){
+    // количество пикселей слева до начала посадочной зоны
+    let x0 = terrainPoints[startZone].x;
+    // количество пикселей слева до конца посадочной зоны
+    let x1 = terrainPoints[startZone + 1].x;
+    return rocketLeftX > x0 && rocketRightX < x1;
+}
+
 function checkCollision() {
     // Проверка столкновения с ландшафтом для каждой стороны
     const leftTerrainHeight = getTerrainHeightAtX(rocketLeftX);
@@ -283,6 +315,10 @@ function checkCollision() {
     //Это я сделал доп проверки на приземление, чтобы избежать неккоректной посадки
     const middleLeftTerrainHeight = getTerrainHeightAtX(rocketMiddleLeftX);
     const middleRightTerrainHeight = getTerrainHeightAtX(rocketMiddleRightX);
+
+    if (checkStartingZone() && rocketTopY > 0 && rocketBottomY < HEIGHT){
+        return 6;
+    }
 
     // Проверка боковых сторон
     if (rocketLeftX < 0 || rocketRightX > WIDTH) {
@@ -314,8 +350,9 @@ function checkCollision() {
 
 // Сброс игры
 function resetGame() {
-    x = WIDTH / 2; // Сбрасываем положение ракеты
-    y = 100;
+    x = terrainPoints[startZone].x + (rocketWidth / 2) + 5;
+    y = terrainPoints[startZone].y - (rocketHeight / 2);
+    onGround = true;
     speedX = 0;
     speedY = 0;
     fuel = 100;  // Восстанавливаем топливо
