@@ -23,6 +23,14 @@ rocketImage.src = 'assets/rocket_without_power.png'; // Укажите путь 
 let x = WIDTH / 2;
 let y = 100;
 
+// Координаты сторон ракеты слева на право
+let rocketLeftX = x - rocketWidth / 2 + 2;
+let rocketMiddleLeftX = x - rocketWidth / 4;
+let rocketMiddleRightX = x + rocketWidth / 4;
+let rocketRightX = x + rocketWidth / 2 - 2;
+let rocketTopY = y - rocketHeight / 2;
+let rocketBottomY = y + rocketHeight / 2;
+
 // Скорости по осям
 let speedX = 0; // Горизонтальная скорость
 let speedY = 0; // Вертикальная скорость
@@ -42,6 +50,21 @@ let touchActive = false; // Флаг удержания касания на эк
 
 // Простой массив точек ландшафта
 let terrainPoints = [];
+let landingZone;
+
+// Порог скорости, при котором посадка считается мягкой
+const landingSpeedThreshold = 2.0;
+
+// Массив со всеми сообщениями для пользователя
+let gameMessageArray = [
+    'Посадка удалась! Поздравляем!',
+    'Столкновение с краем экрана.',
+    'Столкновение верхней частью.',
+    'Жесткая посадка.',
+    'Неправильное приземление. Ракета должна полностью сесть на поверхность.',
+    'Столкновение с боковой частью ракеты!',
+    'Посадка мимо посадочной зоны'
+]
 
 function loadTerrain() {
     fetch('terrain.json')
@@ -56,6 +79,7 @@ function loadTerrain() {
                 x: point.x * SQUARE_SIZE,
                 y: HEIGHT - point.y * SQUARE_SIZE
             }));
+            landingZone = data.landingZone;
             gameLoop(); // Запускаем игровой цикл после загрузки данных
         })
         .catch((error) => {
@@ -63,14 +87,31 @@ function loadTerrain() {
         });
 }
 
-// Порог скорости, при котором посадка считается мягкой
-const landingSpeedThreshold = 2.0;
-
-// Функция для отрисовки ландшафта
 function drawTerrain() {
+    // 1) Рисуем белый путь до индекса landingZone (не включая)
     ctx.beginPath();
     ctx.moveTo(terrainPoints[0].x, terrainPoints[0].y);
-    for (let i = 1; i < terrainPoints.length; i++) {
+    for (let i = 1; i < landingZone + 1; i++) {
+        ctx.lineTo(terrainPoints[i].x, terrainPoints[i].y);
+    }
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    ctx.closePath();
+
+    // 2) Отдельно рисуем зелёный отрезок c landingZone до следующей точки
+    ctx.beginPath();
+    ctx.moveTo(terrainPoints[landingZone].x, terrainPoints[landingZone].y);
+    ctx.lineTo(terrainPoints[landingZone + 1].x, terrainPoints[landingZone + 1].y);
+    ctx.strokeStyle = 'green'; // <-- зелёный цвет
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    ctx.closePath();
+
+    // 3) Дорисовываем оставшуюся часть пути (с landingZone и по конец)
+    ctx.beginPath();
+    ctx.moveTo(terrainPoints[landingZone + 1].x, terrainPoints[landingZone + 1].y);
+    for (let i = landingZone + 2; i < terrainPoints.length; i++) {
         ctx.lineTo(terrainPoints[i].x, terrainPoints[i].y);
     }
     ctx.strokeStyle = '#fff';
@@ -99,18 +140,13 @@ function drawRocket() {
     ctx.save();
     ctx.translate(x, y);  // Перемещение в координаты ракеты
     ctx.rotate(angle);    // Поворот ракеты
-/*    ctx.fillStyle = 'red';
-    ctx.fillRect(-rocketWidth / 2, -rocketHeight / 2, rocketWidth, rocketHeight);*/
-    //ctx.fillRect(-rocketWidth / 2, -rocketHeight / 2, rocketWidth, rocketHeight); // Рисуем ракету
+
     ctx.drawImage(rocketImage, -rocketWidth / 2, -rocketHeight / 2, rocketWidth, rocketHeight);
 
     // Эффект огня при включённом двигателе
     if ((upPressed || touchActive) && fuel > 0) {
         ctx.fillStyle = 'orange';
         ctx.beginPath();
-/*        ctx.moveTo(-rocketWidth / 2, rocketHeight / 2);
-        ctx.lineTo(0, rocketHeight / 2);
-        ctx.lineTo(-rocketWidth / 4, rocketHeight / 2 + 10 + Math.random() * 5); // Эффект пламени*/
 
         //Левый
         ctx.moveTo((-rocketWidth / 2) + 2, rocketHeight / 2);
@@ -126,17 +162,12 @@ function drawRocket() {
     }
     ctx.restore();
     // Визуализация углов ракеты
-    //drawRocketPoints();
+    drawRocketPoints();
 }
+
 //Метод для отрисовки точек столкновения.
 function drawRocketPoints() {
-    // Углы нашей ракеты
-    const rocketLeftX = x - rocketWidth / 2 + 2;
-    const rocketRightX = x + rocketWidth / 2 - 2 ;
-    const rocketTopY = y - rocketHeight / 2;
-    const rocketBottomY = y + rocketHeight / 2;
-    const rocketMiddleLeftX = x - rocketWidth / 4;
-    const rocketMiddleRightX = x + rocketWidth / 4;
+
     ctx.fillStyle = 'blue';
     // Верхний левый угол
     ctx.beginPath();
@@ -168,48 +199,6 @@ function drawRocketPoints() {
     ctx.arc(rocketMiddleRightX, rocketBottomY, 3, 0, 2 * Math.PI);
     ctx.fill();
 }
-// Обработка нажатия клавиш
-document.addEventListener('keydown', (e) => {
-    if (e.code === 'ArrowUp' || e.code === 'KeyW') {
-        upPressed = true;
-    }
-    if (e.code === 'ArrowLeft' || e.code === 'KeyA') {
-        leftPressed = true;
-    }
-    if (e.code === 'ArrowRight' || e.code === 'KeyD') {
-        rightPressed = true;
-    }
-});
-
-// Обработка отпускания клавиш
-document.addEventListener('keyup', (e) => {
-    if (e.code === 'ArrowUp' || e.code === 'KeyW') {
-        upPressed = false;
-    }
-    if (e.code === 'ArrowLeft' || e.code === 'KeyA') {
-        leftPressed = false;
-    }
-    if (e.code === 'ArrowRight' || e.code === 'KeyD') {
-        rightPressed = false;
-    }
-});
-
-// Обработка гироскопа
-if (window.DeviceOrientationEvent) {
-    window.addEventListener('deviceorientation', (event) => {
-        tiltX = event.gamma; // Наклон влево/вправо
-        tiltY = event.beta;  // Наклон вверх/вниз
-    });
-}
-
-// Обработка касания
-document.addEventListener('touchstart', () => {
-    touchActive = true; // Включаем флаг при касании
-});
-
-document.addEventListener('touchend', () => {
-    touchActive = false; // Выключаем флаг при завершении касания
-});
 
 // Основной игровой цикл
 function gameLoop() {
@@ -247,38 +236,46 @@ function updatePhysics() {
     x += speedX; // Обновляем положение по X
     y += speedY; // Обновляем положение по Y
 
+    rocketLeftX = x - rocketWidth / 2 + 2;
+    rocketMiddleLeftX = x - rocketWidth / 4;
+    rocketMiddleRightX = x + rocketWidth / 4;
+    rocketRightX = x + rocketWidth / 2 - 2;
+    rocketTopY = y - rocketHeight / 2;
+    rocketBottomY = y + rocketHeight / 2;
+
     // Проверка столкновений
     let collision = checkCollision();
     switch (collision) {
-        case 0: alert(gameMessageArray[0]); resetGame(); break;
+        // case 0 = удачная посадка => проверим landingZone
+        case 0:
+            if(checkLandingZone()) {
+                console.log("Correct");
+                alert(gameMessageArray[0]);
+            }
+            else {
+                alert(gameMessageArray[6]);
+                console.log("Out of landing zone");
+            }
+            resetGame();
+            break;
         case 1: alert(gameMessageArray[1]); resetGame(); break;
         case 2: alert(gameMessageArray[2]); resetGame(); break;
         case 3: alert(gameMessageArray[3]); resetGame(); break;
         case 4: alert(gameMessageArray[4]); resetGame(); break;
         case 5: alert(gameMessageArray[5]); resetGame(); break;
     }
-    //
 }
 
-let gameMessageArray = [
-    'Посадка удалась! Поздравляем!',
-    'Столкновение с краем экрана.',
-    'Столкновение верхней частью.',
-    'Неправильное приземление.',
-    'Неправильное приземление. Ракета должна полностью сесть на поверхность.',
-    'Столкновение с боковой частью ракеты!'
-]
+// Проверка правильной посадочной зоны
+function checkLandingZone(){
+    // количество пикселей слева до начала посадочной зоны
+    let x0 = terrainPoints[landingZone].x;
+    // количество пикселей слева до конца посадочной зоны
+    let x1 = terrainPoints[landingZone + 1].x;
+    return !(rocketLeftX < x0 || rocketRightX > x1);
+}
 
 function checkCollision() {
-    // Координаты сторон ракеты
-    const rocketLeftX = x - rocketWidth / 2 + 2;
-    const rocketRightX = x + rocketWidth / 2 - 2;
-    const rocketTopY = y - rocketHeight / 2;
-    const rocketBottomY = y + rocketHeight / 2;
-    // Точки между центром и краями
-    const rocketMiddleLeftX = x - rocketWidth / 4;
-    const rocketMiddleRightX = x + rocketWidth / 4;
-
     // Проверка столкновения с ландшафтом для каждой стороны
     const leftTerrainHeight = getTerrainHeightAtX(rocketLeftX);
     const rightTerrainHeight = getTerrainHeightAtX(rocketRightX);
@@ -291,12 +288,10 @@ function checkCollision() {
     if (rocketLeftX < 0 || rocketRightX > WIDTH) {
         return 1;
     }
-
     // Проверка верхней стороны
     if (rocketTopY < 0) {
         return 2;
     }
-
     // Проверка нижней стороны
     if (rocketBottomY >= centerTerrainHeight) {
         if (Math.abs(speedY) > landingSpeedThreshold || Math.abs(speedX) > landingSpeedThreshold) {
@@ -310,13 +305,13 @@ function checkCollision() {
             return 0;
         }
     }
-
     // Проверка столкновения левых и правых сторон
     if (rocketBottomY >= leftTerrainHeight || rocketBottomY >= rightTerrainHeight
         || rocketBottomY >= middleLeftTerrainHeight || rocketBottomY >= middleRightTerrainHeight) {
         return 5;
     }
 }
+
 // Сброс игры
 function resetGame() {
     x = WIDTH / 2; // Сбрасываем положение ракеты
@@ -330,6 +325,7 @@ function resetGame() {
     rightPressed = false; // Сбрасываем флаг нажатия "вправо"
     touchActive = false;  // Сбрасываем касание экрана
 }
+
 function drawFuelBar() {
     const barWidth = 200; // Ширина шкалы
     const barHeight = 20; // Высота шкалы
