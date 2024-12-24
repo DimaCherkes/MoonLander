@@ -15,7 +15,16 @@
 </head>
 <body>
 <canvas id="gameCanvas" width="600" height="600"></canvas>
-
+<!-- Модальное окно -->
+<div id="collisionModal" class="modal">
+    <div class="modal-content">
+        <!-- Здесь будет текст об ошибке -->
+        <span id="collisionText"></span>
+        <br /><br />
+        <!-- Кнопка "Играть снова" -->
+        <button id="playAgainBtn">Играть снова</button>
+    </div>
+</div>
 <!-- Скрипт с игровой логикой -->
 <script src="script.js"></script>
 <script src="controllers.js"></script>

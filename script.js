@@ -13,6 +13,7 @@ let thrustPower = 0.2; // Сила основного двигателя (вер
 let sidePower = 0.1;   // Сила боковых двигателей
 let fuel = 100;        // Запас топлива (можно отключить)
 let onGround = true;
+let gamePaused = false;
 
 // Параметры ракеты
 let rocketWidth = 50;  // Ширина ракеты
@@ -138,33 +139,47 @@ function updatePhysics() {
     // Проверка столкновений
     let collision = checkCollision();
     switch (collision) {
-        // case 0 = удачная посадка => проверим landingZone
-        case 0:
-            if(checkLandingZone()) {
-                console.log("Correct");
-                alert(gameMessageArray[0]);
+        case 0: // Удачная посадка
+            if (checkLandingZone()) {
+                showCollisionModal(gameMessageArray[0]); // «Посадка удалась! Поздравляем!»
+            } else {
+                showCollisionModal(gameMessageArray[6]); // «Посадка мимо посадочной зоны»
             }
-            else {
-                alert(gameMessageArray[6]);
-                console.log("Out of landing zone");
-            }
-            resetGame();
             break;
-        case 1: alert(gameMessageArray[1]); resetGame(); break;
-        case 2: alert(gameMessageArray[2]); resetGame(); break;
-        case 3: alert(gameMessageArray[3]); resetGame(); break;
-        case 4: alert(gameMessageArray[4]); resetGame(); break;
-        case 5: alert(gameMessageArray[5]); resetGame(); break;
+
+        case 1: // Столкновение с краем экрана
+            showCollisionModal(gameMessageArray[1]);
+            break;
+
+        case 2: // Столкновение верхней частью
+            showCollisionModal(gameMessageArray[2]);
+            break;
+
+        case 3: // Жесткая посадка
+            showCollisionModal(gameMessageArray[3]);
+            break;
+
+        case 4: // Неправильное приземление
+            showCollisionModal(gameMessageArray[4]);
+            break;
+
+        case 5: // Столкновение с боковой частью ракеты
+            showCollisionModal(gameMessageArray[5]);
+            break;
+
         case 6:
             if (rocketBottomY >= terrainPoints[startZone].y){
                 console.log("startzone ...")
                 y = terrainPoints[startZone].y - rocketHeight / 2;
+                if (Math.abs(speedY) > landingSpeedThreshold || Math.abs(speedX) > landingSpeedThreshold) {
+                    showCollisionModal(gameMessageArray[6]);
+                }
                 speedX = 0;
                 speedY = 0;
                 onGround = true;
             }
+            break;
     }
-
 }
 
 function checkCollision() {
@@ -191,6 +206,7 @@ function checkCollision() {
     // Проверка нижней стороны
     if (rocketBottomY >= centerTerrainHeight) {
         if (Math.abs(speedY) > landingSpeedThreshold || Math.abs(speedX) > landingSpeedThreshold) {
+            y = centerTerrainHeight - rocketHeight / 2;
             return 3;
         }
         else if(leftTerrainHeight !== rightTerrainHeight ||
@@ -222,15 +238,16 @@ function resetGame() {
     rightPressed = false; // Сбрасываем флаг нажатия "вправо"
     touchActive = false;  // Сбрасываем касание экрана
 }
-
-// Основной игровой цикл
 function gameLoop() {
-    ctx.clearRect(0, 0, WIDTH, HEIGHT); // Очищаем Canvas
+    ctx.clearRect(0, 0, WIDTH, HEIGHT);
+    if (!gamePaused) {
+        updatePhysics();// Обновляем физику
+    }
     drawFuelBar(); // Отрисовка шкалы топлива
-    updatePhysics(); // Обновляем физику
     drawTerrain();   // Рисуем ландшафт
     drawRocket();    // Рисуем ракету
-    requestAnimationFrame(gameLoop); // Следующий кадр
+
+    requestAnimationFrame(gameLoop);
 }
 
 // Функция для отрисовки ландшафта
@@ -276,7 +293,7 @@ function drawRocket() {
     ctx.drawImage(rocketImage, -rocketWidth / 2, -rocketHeight / 2, rocketWidth, rocketHeight);
 
     // Эффект огня при включённом двигателе
-    if ((upPressed || touchActive) && fuel > 0) {
+    if ((upPressed || touchActive) && fuel > 0 && !gamePaused) {
         ctx.fillStyle = 'orange';
         ctx.beginPath();
 
@@ -385,4 +402,25 @@ function checkStartingZone(){
     // количество пикселей слева до конца посадочной зоны
     let x1 = terrainPoints[startZone + 1].x;
     return rocketLeftX > x0 && rocketRightX < x1;
+}
+window.addEventListener('DOMContentLoaded', () => {
+    // DOM полностью загрузился, ищем кнопку и вешаем обработчик
+    const playAgainBtn = document.getElementById('playAgainBtn');
+    if (playAgainBtn) {
+        playAgainBtn.addEventListener('click', () => {
+            hideCollisionModal(); // Скрываем модальное окно
+            resetGame();          // Сбрасываем игру
+        });
+    }
+});
+function showCollisionModal(message) {
+    const modal = document.getElementById('collisionModal');
+    document.getElementById('collisionText').textContent = message;
+    modal.style.display = 'flex';
+    gamePaused = true;
+}
+
+function hideCollisionModal() {
+    document.getElementById('collisionModal').style.display = 'none';
+    gamePaused = false;
 }

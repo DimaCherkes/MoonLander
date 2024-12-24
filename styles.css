@@ -12,3 +12,71 @@ canvas {
     background-color: #000; /* Резервный цвет фона */
     border: 1px solid #333;
 }
+/* Стили для модального окна */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 999;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8); /* Более глубокий полупрозрачный фон */
+    justify-content: center;
+    align-items: center;
+}
+
+/* Стили для контента модального окна */
+.modal-content {
+    background: linear-gradient(145deg, #1e1e1e, #2a2a2a); /* Градиентный фон */
+    color: #fff;
+    padding: 30px;
+    border-radius: 12px;
+    text-align: center;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5); /* Тень для глубины */
+    max-width: 400px;
+    animation: fadeIn 0.3s ease-out;
+    position: relative;
+    font-family: 'Arial', sans-serif;
+}
+
+/* Анимация появления окна */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Стиль текста ошибки */
+#collisionText {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+
+/* Кнопка */
+button {
+    background-color: #ff5722; /* Оранжевый цвет кнопки */
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    font-size: 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    text-transform: uppercase;
+}
+
+button:hover {
+    background-color: #ff784e; /* Светлее при наведении */
+}
+
+button:active {
+    transform: scale(0.95); /* Лёгкий эффект нажатия */
+}
+
