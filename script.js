@@ -14,6 +14,10 @@ let sidePower = 0.1;   // Сила боковых двигателей
 let fuel = 100;        // Запас топлива (можно отключить)
 let onGround = true;
 let gamePaused = false;
+const terrainTexture = new Image();
+terrainTexture.src = 'assets/surface.png'; // Путь к текстуре поверхности
+const backgroundImage = new Image();
+backgroundImage.src = 'assets/background_canvas.png'; //Путь к текстуре канваса
 
 // Параметры ракеты
 let rocketWidth = 50;  // Ширина ракеты
@@ -178,7 +182,7 @@ function updatePhysics() {
             if (rocketBottomY >= terrainPointsDownside[startZone].y ) {
                 y = terrainPointsDownside[startZone].y - rocketHeight / 2;
                 if (Math.abs(speedY) > landingSpeedThreshold || Math.abs(speedX) > landingSpeedThreshold) {
-                    showCollisionModal(gameMessageArray[6]);
+                    showCollisionModal(gameMessageArray[3]);
                 }
                 speedX = 0;
                 speedY = 0;
@@ -257,6 +261,7 @@ function resetGame() {
 // Основной игровой цикл
 function gameLoop() {
     ctx.clearRect(0, 0, WIDTH, HEIGHT);
+    drawBackground(); // Рисуем фон
     if (!gamePaused) {
         updatePhysics();// Обновляем физику
     }
@@ -266,7 +271,9 @@ function gameLoop() {
 
     requestAnimationFrame(gameLoop);
 }
-
+function drawBackground() {
+    ctx.drawImage(backgroundImage, 0, 0, WIDTH, HEIGHT); // Растягиваем фон на весь Canvas
+}
 // Функция для отрисовки ландшафта
 function drawTerrain() {
     // 1) Сначала рисуем весь ландшафт белым цветом
@@ -275,6 +282,14 @@ function drawTerrain() {
     for (let i = 1; i < terrainPointsDownside.length; i++) {
         ctx.lineTo(terrainPointsDownside[i].x, terrainPointsDownside[i].y);
     }
+    // Замыкаем линию и заполняем текстурой луны
+    ctx.lineTo(terrainPointsDownside[terrainPointsDownside.length - 1].x, HEIGHT); // Линия вниз к нижней границе Canvas
+    ctx.lineTo(terrainPointsDownside[0].x, HEIGHT); // Линия влево к начальной точке
+    ctx.closePath(); // Замыкаем путь
+    const terrainPattern = ctx.createPattern(terrainTexture, 'repeat');
+    ctx.fillStyle = terrainPattern;
+    ctx.fill(); // Заполняем область текстурой
+
     ctx.strokeStyle = '#fff';
     ctx.lineWidth = 2; // толщина белой линии
     ctx.stroke();
@@ -306,6 +321,13 @@ function drawTerrain() {
     for (let i = 1; i < terrainPointsUpside.length; i++) {
         ctx.lineTo(terrainPointsUpside[i].x, terrainPointsUpside[i].y);
     }
+    // Замыкаем линию и заполняем текстурой луны
+    ctx.lineTo(terrainPointsUpside[terrainPointsUpside.length - 1].x, 0); // Линия вниз к нижней границе Canvas
+    ctx.lineTo(terrainPointsUpside[0].x, 0); // Линия влево к начальной точке
+    ctx.closePath(); // Замыкаем путь
+    ctx.fillStyle = terrainPattern;
+    ctx.fill(); // Заполняем область текстурой
+
     ctx.strokeStyle = '#fff';
     ctx.lineWidth = 2; // толщина белой линии
     ctx.stroke();
