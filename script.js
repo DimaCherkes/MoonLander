@@ -67,7 +67,10 @@ let gameMessageArray = [
     'Неправильное приземление. Ракета должна полностью сесть на поверхность.',
     'Столкновение с боковой частью ракеты!',
     'Посадка мимо посадочной зоны'
-]
+];
+
+// Запуск игрового цикла
+loadTerrain();
 
 function loadTerrain() {
     fetch('terrain.json')
@@ -93,131 +96,6 @@ function loadTerrain() {
         .catch((error) => {
             console.error('Не удалось загрузить ландшафт:', error);
         });
-}
-
-// Функция для отрисовки ландшафта
-function drawTerrain() {
-    // 1) Сначала рисуем весь ландшафт белым цветом
-    ctx.beginPath();
-    ctx.moveTo(terrainPoints[0].x, terrainPoints[0].y);
-    for (let i = 1; i < terrainPoints.length; i++) {
-        ctx.lineTo(terrainPoints[i].x, terrainPoints[i].y);
-    }
-    ctx.strokeStyle = '#fff';
-    ctx.lineWidth = 2; // толщина белой линии
-    ctx.stroke();
-    ctx.closePath();
-
-    // 2) Поверх рисуем landingZone
-    ctx.beginPath();
-    // используем landingZone и landingZone + 1
-    ctx.moveTo(terrainPoints[landingZone].x, terrainPoints[landingZone].y);
-    ctx.lineTo(terrainPoints[landingZone + 1].x, terrainPoints[landingZone + 1].y);
-    ctx.strokeStyle = 'green';
-    ctx.lineWidth = 3; // толщина зелёной линии
-    ctx.stroke();
-    ctx.closePath();
-
-    // 2) Поверх рисуем landingZone
-    ctx.beginPath();
-    // используем landingZone и landingZone + 1
-    ctx.moveTo(terrainPoints[startZone].x, terrainPoints[startZone].y);
-    ctx.lineTo(terrainPoints[startZone + 1].x, terrainPoints[startZone + 1].y);
-    ctx.strokeStyle = '#16e1e1';
-    ctx.lineWidth = 3; // толщина зелёной линии
-    ctx.stroke();
-    ctx.closePath();
-}
-
-
-// Функция для проверки высоты ландшафта в заданной x-координате
-function getTerrainHeightAtX(xCoord) {
-    for (let i = 0; i < terrainPoints.length - 1; i++) {
-        let p1 = terrainPoints[i];
-        let p2 = terrainPoints[i + 1];
-        if (xCoord >= p1.x && xCoord <= p2.x) {
-            let dx = p2.x - p1.x;
-            let dy = p2.y - p1.y;
-            let ratio = (xCoord - p1.x) / dx;  // Доля отрезка
-            return p1.y + dy * ratio; // Интерполяция высоты
-        }
-    }
-    return terrainPoints[terrainPoints.length - 1].y; // Если за пределами, возвращаем последнюю высоту
-}
-
-// Отрисовка ракеты
-function drawRocket() {
-    ctx.save();
-    ctx.translate(x, y);  // Перемещение в координаты ракеты
-    ctx.rotate(angle);    // Поворот ракеты
-
-    ctx.drawImage(rocketImage, -rocketWidth / 2, -rocketHeight / 2, rocketWidth, rocketHeight);
-
-    // Эффект огня при включённом двигателе
-    if ((upPressed || touchActive) && fuel > 0) {
-        ctx.fillStyle = 'orange';
-        ctx.beginPath();
-
-        //Левый
-        ctx.moveTo((-rocketWidth / 2) + 2, rocketHeight / 2);
-        ctx.lineTo(-2, rocketHeight / 2);
-        ctx.lineTo(-rocketWidth / 4, rocketHeight / 2 + 10 + Math.random() * 5);
-        ctx.fill();
-        //Правый
-        ctx.beginPath();
-        ctx.moveTo((rocketWidth / 2) - 2, rocketHeight / 2);
-        ctx.lineTo(2, rocketHeight / 2);
-        ctx.lineTo(rocketWidth / 4, rocketHeight / 2 + 10 + Math.random() * 5);
-        ctx.fill();
-    }
-    ctx.restore();
-    // Визуализация углов ракеты
-    drawRocketPoints();
-}
-
-//Метод для отрисовки точек столкновения.
-function drawRocketPoints() {
-
-    ctx.fillStyle = 'blue';
-    // Верхний левый угол
-    ctx.beginPath();
-    ctx.arc(rocketLeftX, rocketTopY, 3, 0, 2 * Math.PI);
-    ctx.fill();
-    // Верхний правый угол
-    ctx.beginPath();
-    ctx.arc(rocketRightX, rocketTopY, 3, 0, 2 * Math.PI);
-    ctx.fill();
-    // Нижний левый угол
-    ctx.beginPath();
-    ctx.arc(rocketLeftX, rocketBottomY, 3, 0, 2 * Math.PI);
-    ctx.fill();
-    // Нижний правый угол
-    ctx.beginPath();
-    ctx.arc(rocketRightX, rocketBottomY, 3, 0, 2 * Math.PI);
-    ctx.fill();
-    // Центральная нижняя точка
-    ctx.beginPath();
-    ctx.arc(x, rocketBottomY, 3, 0, 2 * Math.PI);
-    ctx.fill();
-
-    // Точка между левым нижним углом и нижней центральной точкой
-    ctx.beginPath();
-    ctx.arc(rocketMiddleLeftX, rocketBottomY, 3, 0, 2 * Math.PI);
-    ctx.fill();
-    // Точка между правым нижним углом и нижней центральной точкой
-    ctx.beginPath();
-    ctx.arc(rocketMiddleRightX, rocketBottomY, 3, 0, 2 * Math.PI);
-    ctx.fill();
-}
-
-// Основной игровой цикл
-function gameLoop() {
-    ctx.clearRect(0, 0, WIDTH, HEIGHT); // Очищаем Canvas
-    drawFuelBar(); // Отрисовка шкалы топлива
-    updatePhysics(); // Обновляем физику
-    drawTerrain();   // Рисуем ландшафт
-    drawRocket();    // Рисуем ракету
-    requestAnimationFrame(gameLoop); // Следующий кадр
 }
 
 // Логика физики
@@ -289,24 +167,6 @@ function updatePhysics() {
 
 }
 
-// Проверка правильной посадочной зоны
-function checkLandingZone(){
-    // количество пикселей слева до начала посадочной зоны
-    let x0 = terrainPoints[landingZone].x;
-    // количество пикселей слева до конца посадочной зоны
-    let x1 = terrainPoints[landingZone + 1].x;
-    return !(rocketLeftX < x0 || rocketRightX > x1);
-}
-
-// Проверка правильной стартовой зоны
-function checkStartingZone(){
-    // количество пикселей слева до начала посадочной зоны
-    let x0 = terrainPoints[startZone].x;
-    // количество пикселей слева до конца посадочной зоны
-    let x1 = terrainPoints[startZone + 1].x;
-    return rocketLeftX > x0 && rocketRightX < x1;
-}
-
 function checkCollision() {
     // Проверка столкновения с ландшафтом для каждой стороны
     const leftTerrainHeight = getTerrainHeightAtX(rocketLeftX);
@@ -363,6 +223,115 @@ function resetGame() {
     touchActive = false;  // Сбрасываем касание экрана
 }
 
+// Основной игровой цикл
+function gameLoop() {
+    ctx.clearRect(0, 0, WIDTH, HEIGHT); // Очищаем Canvas
+    drawFuelBar(); // Отрисовка шкалы топлива
+    updatePhysics(); // Обновляем физику
+    drawTerrain();   // Рисуем ландшафт
+    drawRocket();    // Рисуем ракету
+    requestAnimationFrame(gameLoop); // Следующий кадр
+}
+
+// Функция для отрисовки ландшафта
+function drawTerrain() {
+    // 1) Сначала рисуем весь ландшафт белым цветом
+    ctx.beginPath();
+    ctx.moveTo(terrainPoints[0].x, terrainPoints[0].y);
+    for (let i = 1; i < terrainPoints.length; i++) {
+        ctx.lineTo(terrainPoints[i].x, terrainPoints[i].y);
+    }
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 2; // толщина белой линии
+    ctx.stroke();
+    ctx.closePath();
+
+    // 2) Поверх рисуем landingZone
+    ctx.beginPath();
+    // используем landingZone и landingZone + 1
+    ctx.moveTo(terrainPoints[landingZone].x, terrainPoints[landingZone].y);
+    ctx.lineTo(terrainPoints[landingZone + 1].x, terrainPoints[landingZone + 1].y);
+    ctx.strokeStyle = 'green';
+    ctx.lineWidth = 3; // толщина зелёной линии
+    ctx.stroke();
+    ctx.closePath();
+
+    // 2) Поверх рисуем landingZone
+    ctx.beginPath();
+    // используем landingZone и landingZone + 1
+    ctx.moveTo(terrainPoints[startZone].x, terrainPoints[startZone].y);
+    ctx.lineTo(terrainPoints[startZone + 1].x, terrainPoints[startZone + 1].y);
+    ctx.strokeStyle = '#16e1e1';
+    ctx.lineWidth = 3; // толщина зелёной линии
+    ctx.stroke();
+    ctx.closePath();
+}
+
+// Отрисовка ракеты
+function drawRocket() {
+    ctx.save();
+    ctx.translate(x, y);  // Перемещение в координаты ракеты
+    ctx.rotate(angle);    // Поворот ракеты
+
+    ctx.drawImage(rocketImage, -rocketWidth / 2, -rocketHeight / 2, rocketWidth, rocketHeight);
+
+    // Эффект огня при включённом двигателе
+    if ((upPressed || touchActive) && fuel > 0) {
+        ctx.fillStyle = 'orange';
+        ctx.beginPath();
+
+        //Левый
+        ctx.moveTo((-rocketWidth / 2) + 2, rocketHeight / 2);
+        ctx.lineTo(-2, rocketHeight / 2);
+        ctx.lineTo(-rocketWidth / 4, rocketHeight / 2 + 10 + Math.random() * 5);
+        ctx.fill();
+        //Правый
+        ctx.beginPath();
+        ctx.moveTo((rocketWidth / 2) - 2, rocketHeight / 2);
+        ctx.lineTo(2, rocketHeight / 2);
+        ctx.lineTo(rocketWidth / 4, rocketHeight / 2 + 10 + Math.random() * 5);
+        ctx.fill();
+    }
+    ctx.restore();
+    // Визуализация углов ракеты
+    drawRocketPoints();
+}
+
+//Метод для отрисовки точек столкновения.
+function drawRocketPoints() {
+
+    ctx.fillStyle = 'blue';
+    // Верхний левый угол
+    ctx.beginPath();
+    ctx.arc(rocketLeftX, rocketTopY, 3, 0, 2 * Math.PI);
+    ctx.fill();
+    // Верхний правый угол
+    ctx.beginPath();
+    ctx.arc(rocketRightX, rocketTopY, 3, 0, 2 * Math.PI);
+    ctx.fill();
+    // Нижний левый угол
+    ctx.beginPath();
+    ctx.arc(rocketLeftX, rocketBottomY, 3, 0, 2 * Math.PI);
+    ctx.fill();
+    // Нижний правый угол
+    ctx.beginPath();
+    ctx.arc(rocketRightX, rocketBottomY, 3, 0, 2 * Math.PI);
+    ctx.fill();
+    // Центральная нижняя точка
+    ctx.beginPath();
+    ctx.arc(x, rocketBottomY, 3, 0, 2 * Math.PI);
+    ctx.fill();
+
+    // Точка между левым нижним углом и нижней центральной точкой
+    ctx.beginPath();
+    ctx.arc(rocketMiddleLeftX, rocketBottomY, 3, 0, 2 * Math.PI);
+    ctx.fill();
+    // Точка между правым нижним углом и нижней центральной точкой
+    ctx.beginPath();
+    ctx.arc(rocketMiddleRightX, rocketBottomY, 3, 0, 2 * Math.PI);
+    ctx.fill();
+}
+
 function drawFuelBar() {
     const barWidth = 200; // Ширина шкалы
     const barHeight = 20; // Высота шкалы
@@ -385,5 +354,35 @@ function drawFuelBar() {
     ctx.fillText(`Fuel: ${Math.round(fuel)}%`, barX, barY - 5); // Текст над шкалой
 }
 
-// Запуск игрового цикла
-loadTerrain();
+// Функция для проверки высоты ландшафта в заданной x-координате
+function getTerrainHeightAtX(xCoord) {
+    for (let i = 0; i < terrainPoints.length - 1; i++) {
+        let p1 = terrainPoints[i];
+        let p2 = terrainPoints[i + 1];
+        if (xCoord >= p1.x && xCoord <= p2.x) {
+            let dx = p2.x - p1.x;
+            let dy = p2.y - p1.y;
+            let ratio = (xCoord - p1.x) / dx;  // Доля отрезка
+            return p1.y + dy * ratio; // Интерполяция высоты
+        }
+    }
+    return terrainPoints[terrainPoints.length - 1].y; // Если за пределами, возвращаем последнюю высоту
+}
+
+// Проверка правильной посадочной зоны
+function checkLandingZone(){
+    // количество пикселей слева до начала посадочной зоны
+    let x0 = terrainPoints[landingZone].x;
+    // количество пикселей слева до конца посадочной зоны
+    let x1 = terrainPoints[landingZone + 1].x;
+    return !(rocketLeftX < x0 || rocketRightX > x1);
+}
+
+// Проверка правильной стартовой зоны
+function checkStartingZone(){
+    // количество пикселей слева до начала посадочной зоны
+    let x0 = terrainPoints[startZone].x;
+    // количество пикселей слева до конца посадочной зоны
+    let x1 = terrainPoints[startZone + 1].x;
+    return rocketLeftX > x0 && rocketRightX < x1;
+}
