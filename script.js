@@ -126,7 +126,7 @@ function drawRocket() {
     }
     ctx.restore();
     // Визуализация углов ракеты
-    drawRocketPoints();
+    //drawRocketPoints();
 }
 //Метод для отрисовки точек столкновения.
 function drawRocketPoints() {
@@ -214,6 +214,7 @@ document.addEventListener('touchend', () => {
 // Основной игровой цикл
 function gameLoop() {
     ctx.clearRect(0, 0, WIDTH, HEIGHT); // Очищаем Canvas
+    drawFuelBar(); // Отрисовка шкалы топлива
     updatePhysics(); // Обновляем физику
     drawTerrain();   // Рисуем ландшафт
     drawRocket();    // Рисуем ракету
@@ -328,6 +329,27 @@ function resetGame() {
     leftPressed = false;  // Сбрасываем флаг нажатия "влево"
     rightPressed = false; // Сбрасываем флаг нажатия "вправо"
     touchActive = false;  // Сбрасываем касание экрана
+}
+function drawFuelBar() {
+    const barWidth = 200; // Ширина шкалы
+    const barHeight = 20; // Высота шкалы
+    const barX = 20; // Отступ от левого края
+    const barY = 20; // Отступ от верхнего края
+
+    // Рамка шкалы
+    ctx.strokeStyle = '#fff'; // Цвет рамки
+    ctx.lineWidth = 1;
+    ctx.strokeRect(barX, barY, barWidth, barHeight);
+
+    // Заполненная часть шкалы
+    const fuelWidth = (fuel / 100) * barWidth; // Пропорциональная ширина
+    ctx.fillStyle = fuel > 70 ? '#0f0' : (fuel >50)?'#ffcb00':(fuel >20)?'#ff7700':'#f00'; // Цвет: зелёный, если топлива больше 20%, иначе красный
+    ctx.fillRect(barX, barY, fuelWidth, barHeight);
+
+    // Текст уровня топлива
+    ctx.fillStyle = '#fff';
+    ctx.font = '16px Arial';
+    ctx.fillText(`Fuel: ${Math.round(fuel)}%`, barX, barY - 5); // Текст над шкалой
 }
 
 // Запуск игрового цикла
