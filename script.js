@@ -39,8 +39,10 @@ let rightPressed = false; // Вправо
 let tiltX = 0; // Наклон по горизонтали
 let tiltY = 0; // Наклон по вертикали
 let touchActive = false; // Флаг удержания касания на экране
+
 // Простой массив точек ландшафта
 let terrainPoints = [];
+
 function loadTerrain() {
     fetch('terrain.json')
         .then((response) => {
@@ -245,60 +247,73 @@ function updatePhysics() {
     y += speedY; // Обновляем положение по Y
 
     // Проверка столкновений
-    checkCollision();
+    let collision = checkCollision();
+    switch (collision) {
+        case 0: alert(gameMessageArray[0]); resetGame(); break;
+        case 1: alert(gameMessageArray[1]); resetGame(); break;
+        case 2: alert(gameMessageArray[2]); resetGame(); break;
+        case 3: alert(gameMessageArray[3]); resetGame(); break;
+        case 4: alert(gameMessageArray[4]); resetGame(); break;
+        case 5: alert(gameMessageArray[5]); resetGame(); break;
+    }
+    //
 }
+
+let gameMessageArray = [
+    'Посадка удалась! Поздравляем!',
+    'Столкновение с краем экрана.',
+    'Столкновение верхней частью.',
+    'Неправильное приземление.',
+    'Неправильное приземление. Ракета должна полностью сесть на поверхность.',
+    'Столкновение с боковой частью ракеты!'
+]
+
 function checkCollision() {
     // Координаты сторон ракеты
     const rocketLeftX = x - rocketWidth / 2 + 2;
     const rocketRightX = x + rocketWidth / 2 - 2;
     const rocketTopY = y - rocketHeight / 2;
     const rocketBottomY = y + rocketHeight / 2;
+    // Точки между центром и краями
+    const rocketMiddleLeftX = x - rocketWidth / 4;
+    const rocketMiddleRightX = x + rocketWidth / 4;
 
     // Проверка столкновения с ландшафтом для каждой стороны
     const leftTerrainHeight = getTerrainHeightAtX(rocketLeftX);
     const rightTerrainHeight = getTerrainHeightAtX(rocketRightX);
     const centerTerrainHeight = getTerrainHeightAtX(x);
     //Это я сделал доп проверки на приземление, чтобы избежать неккоректной посадки
-    const rocketMiddleLeftX = x - rocketWidth / 4;
-    const rocketMiddleRightX = x + rocketWidth / 4;
     const middleLeftTerrainHeight = getTerrainHeightAtX(rocketMiddleLeftX);
     const middleRightTerrainHeight = getTerrainHeightAtX(rocketMiddleRightX);
 
     // Проверка боковых сторон
     if (rocketLeftX < 0 || rocketRightX > WIDTH) {
-        alert('Столкновение с краем экрана.');
-        resetGame();
-        return;
+        return 1;
     }
 
     // Проверка верхней стороны
     if (rocketTopY < 0) {
-        alert('Столкновение верхней частью.');
-        resetGame();
-        return;
+        return 2;
     }
 
     // Проверка нижней стороны
     if (rocketBottomY >= centerTerrainHeight) {
         if (Math.abs(speedY) > landingSpeedThreshold || Math.abs(speedX) > landingSpeedThreshold) {
-            alert('Неправильное приземление.');
+            return 3;
         }
         else if(leftTerrainHeight !== rightTerrainHeight ||
             rightTerrainHeight !== centerTerrainHeight){
-            alert('Неправильное приземление. Ракета должна полностью сесть на поверхность.');
+            return 4;
         }
         else {
-            alert('Посадка удалась! Поздравляем!');
+            return 0;
         }
-        resetGame();
-        return;
     }
 
     // Проверка столкновения левых и правых сторон
     if (rocketBottomY >= leftTerrainHeight || rocketBottomY >= rightTerrainHeight
         || rocketBottomY >= middleLeftTerrainHeight || rocketBottomY >= middleRightTerrainHeight) {
-        alert('Столкновение!');
-        resetGame();
+        return 5;
     }
 }
 // Сброс игры
