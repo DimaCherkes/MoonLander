@@ -1,43 +1,81 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Лунная посадка</title>
+    <title>Moon Lander — Menu</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <!-- PWA: Иконка, цвет темы, манифест -->
-    <link rel="icon" href="assets/rocket.png">
-    <meta name="theme-color" content="#000000" />
-
-
-    <!-- Стили -->
-    <link rel="stylesheet" href="styles.css">
+    <!-- Styles for the menu -->
+    <link rel="stylesheet" href="css/menu.css">
+    <!-- Global styles (background, fonts, star animations, etc.) -->
+    <link rel="stylesheet" href="css/global.css">
 </head>
 <body>
-<canvas id="gameCanvas" width="600" height="600"></canvas>
-<!-- Модальное окно -->
-<div id="collisionModal" class="modal">
-    <div class="modal-content">
-        <!-- Здесь будет текст об ошибке -->
-        <span id="collisionText"></span>
-        <br /><br />
-        <!-- Кнопка "Играть снова" -->
-        <button id="playAgainBtn">Играть снова</button>
+
+<!-- Main wrapper taking the entire screen (see global.css) -->
+<div class="wrapper">
+    <!-- Popup menu container -->
+    <div id="menuContainer" class="menu-popup">
+        <h1 class="menu-title">Moon Lander</h1>
+        <!-- Main menu (buttons) -->
+        <div id="menuView" class="menu-view">
+            <button class="menu-button" id="playBtn">Play</button>
+            <button class="menu-button" id="rulesBtn">Rules</button>
+        </div>
+        <!-- Rules window (hidden by default) -->
+        <div id="rulesView" class="menu-view">
+            <h2>Game Rules</h2>
+            <div class="rules-text">
+                <p>
+                    Here you can place a detailed description of the rules. If the text is too long,
+                    a vertical scrollbar will appear. For example:
+                    <br/><br/>
+                    1. Control the rocket using arrow keys or swipes.<br/>
+                    2. Monitor your fuel levels.<br/>
+                    3. Do not exceed the maximum landing speed.<br/>
+                    ...
+                </p>
+            </div>
+            <button class="menu-button" id="backBtn">Back</button>
+        </div>
+
     </div>
 </div>
-<!-- Скрипт с игровой логикой -->
-<script src="script.js"></script>
-<script src="controllers.js"></script>
 
-<!-- Регистрация Service Worker (PWA) -->
+<!-- JS logic: toggling between menu and rules -->
 <script>
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('sw.js')
-                .then(() => console.log('Service Worker зарегистрирован!'))
-                .catch(err => console.log('SW регистрация не удалась: ', err));
-        });
+    const menuView  = document.getElementById('menuView');
+    const rulesView = document.getElementById('rulesView');
+    const playBtn   = document.getElementById('playBtn');
+    const rulesBtn  = document.getElementById('rulesBtn');
+    const backBtn   = document.getElementById('backBtn');
+
+    // On load: show the menu, hide the rules
+    document.addEventListener('DOMContentLoaded', () => {
+        showMenu();
+    });
+
+    // "Play" button => redirect to game.html
+    playBtn.addEventListener('click', () => {
+        window.location.href = 'game.html';
+    });
+
+    // "Rules" button => hide the menu, show the rules block
+    rulesBtn.addEventListener('click', () => {
+        menuView.style.display  = 'none';
+        rulesView.style.display = 'block';
+    });
+
+    // "Back" button => return to the menu block
+    backBtn.addEventListener('click', () => {
+        showMenu();
+    });
+
+    function showMenu() {
+        menuView.style.display  = 'block';
+        rulesView.style.display = 'none';
     }
 </script>
+
 </body>
 </html>

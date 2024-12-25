@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Moon Lander — Game</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Space background/animations -->
+  <link rel="stylesheet" href="css/global.css">
+  <!-- Styles for the game (Canvas, modals, etc.) -->
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<!-- Top panel with two buttons: "Menu" and "Pause" -->
+<div class="top-panel">
+  <button id="menuBtn">Menu</button>
+  <button id="pauseBtn">Pause</button>
+</div>
+
+<!-- Game Canvas -->
+<canvas id="gameCanvas" width="600" height="600"></canvas>
+
+<!-- Modal for collisions (or success) -->
+<div id="collisionModal" class="modal">
+  <div class="modal-content">
+    <span id="collisionText"></span>
+    <br /><br />
+    <!-- Three buttons -->
+    <button id="playAgainBtn"   class="modal-button">Try Again</button>
+    <button id="menuModalBtn"   class="modal-button">Main Menu</button>
+    <button id="nextLevelBtn"   class="modal-button">Next Level</button>
+  </div>
+</div>
+
+<!-- Modal for pause -->
+<div id="pauseModal" class="modal">
+  <div class="modal-content">
+    <span id="pauseText">Paused</span>
+    <br /><br />
+    <!-- New button: Resume game -->
+    <button id="pauseResumeBtn" class="modal-button">Resume Game</button>
+
+    <button id="pausePlayAgainBtn" class="modal-button">Try Again</button>
+    <button id="pauseMenuBtn"      class="modal-button">Main Menu</button>
+    <button id="pauseNextLevelBtn" class="modal-button">Next Level</button>
+  </div>
+</div>
+
+
+<!-- Game Scripts -->
+<script src="js/script.js"></script>
+<script src="js/controllers.js"></script>
+
+<!-- If PWA is needed -->
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js')
+              .then(() => console.log('Service Worker registered!'))
+              .catch(err => console.log('Service Worker registration failed: ', err));
+    });
+  }
+</script>
+</body>
+</html>
