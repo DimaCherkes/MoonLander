@@ -14,7 +14,7 @@
     box-shadow: 0 0 30px rgba(88, 0, 255, 0.4), 0 0 60px rgba(255, 255, 255, 0.1);
     border-radius: 16px;
     padding: 30px;
-    animation: popupAppear 0.8s ease forwards;
+    animation: popupAppear 0.2s ease forwards;
     position: relative;
 }
 

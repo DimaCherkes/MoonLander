@@ -12,15 +12,18 @@
   <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
-
-<!-- Top panel with two buttons: "Menu" and "Pause" -->
-<div class="top-panel">
-  <button id="menuBtn">Menu</button>
-  <button id="pauseBtn">Pause</button>
+<div class="game-container">
+    <!-- Top panel with two buttons: "Menu" and "Pause" -->
+    <div class="top-panel">
+      <button id="menuBtn">Menu</button>
+      <button id="pauseBtn">Pause</button>
+    </div>
+  <div class="canvas-container">
+      <!-- Game Canvas -->
+      <canvas id="gameCanvas" width="600" height="600"></canvas>
+  </div>
 </div>
 
-<!-- Game Canvas -->
-<canvas id="gameCanvas" width="600" height="600"></canvas>
 
 <!-- Modal for collisions (or success) -->
 <div id="collisionModal" class="modal">
