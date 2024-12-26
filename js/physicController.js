@@ -40,3 +40,4 @@ document.addEventListener('touchstart', () => {
 document.addEventListener('touchend', () => {
     touchActive = false; // Выключаем флаг при завершении касания
 });
+
