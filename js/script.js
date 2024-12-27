@@ -75,11 +75,13 @@ let gameMessageArray = [
     'Посадка мимо посадочной зоны'
 ];
 
+const developerMode = true;
+
 // Запуск игрового цикла
 loadTerrain();
 
 function loadTerrain() {
-    fetch('terrain.json')
+    fetch('terrain4.json')
         .then((response) => {
             if (!response.ok) {
                 throw new Error(`Ошибка загрузки: ${response.status}`);
@@ -161,23 +163,18 @@ function updatePhysics() {
         case 1: // Столкновение с краем экрана
             showCollisionModal(gameMessageArray[1]);
             break;
-
         case 2: // Столкновение верхней частью
             showCollisionModal(gameMessageArray[2]);
             break;
-
         case 3: // Жесткая посадка
             showCollisionModal(gameMessageArray[3]);
             break;
-
         case 4: // Неправильное приземление
             showCollisionModal(gameMessageArray[4]);
             break;
-
         case 5: // Столкновение с боковой частью ракеты
             showCollisionModal(gameMessageArray[5]);
             break;
-
         case 6:
             if (rocketBottomY >= terrainPointsDownside[startZone].y ) {
                 y = terrainPointsDownside[startZone].y - rocketHeight / 2;
@@ -197,7 +194,7 @@ function checkCollision() {
     const leftTerrainHeight = getTerrainHeightForDownSideAtX(rocketLeftX);
     const rightTerrainHeight = getTerrainHeightForDownSideAtX(rocketRightX);
     const centerTerrainHeight = getTerrainHeightForDownSideAtX(x);
-    //Это я сделал доп проверки на приземление, чтобы избежать неккоректной посадки
+    //Это я сделал доп проверки на приземление, чтобы избежать некорректной посадки
     const middleLeftTerrainHeight = getTerrainHeightForDownSideAtX(rocketMiddleLeftX);
     const middleRightTerrainHeight = getTerrainHeightForDownSideAtX(rocketMiddleRightX);
 
@@ -265,9 +262,9 @@ function gameLoop() {
     if (!gamePaused) {
         updatePhysics();// Обновляем физику
     }
-    drawFuelBar(); // Отрисовка шкалы топлива
     drawTerrain();   // Рисуем ландшафт
     drawRocket();    // Рисуем ракету
+    drawFuelBar(); // Отрисовка шкалы топлива
 
     requestAnimationFrame(gameLoop);
 }
@@ -332,6 +329,56 @@ function drawTerrain() {
     ctx.lineWidth = 2; // толщина белой линии
     ctx.stroke();
     ctx.closePath();
+
+    if (developerMode){
+        // рисуем сетку
+        drawGrid(ctx, WIDTH, HEIGHT, SQUARE_SIZE);
+
+        const scaledPoints = terrainPointsDownside.map(pt => ({
+            x: pt.x,   // пиксели
+            y: pt.y,   // пиксели
+            gridX: pt.x / SQUARE_SIZE,                 // «ячейка» по X
+            gridY: pt.y / SQUARE_SIZE                 // «ячейка» по Y
+        }));
+
+        for (let i = 0; i < scaledPoints.length - 1; i++) {
+            const p1 = scaledPoints[i];
+            const p2 = scaledPoints[i + 1];
+
+            // Определяем направление
+            const direction = getSegmentDirection(p1.gridX, p1.gridY, p2.gridX, p2.gridY);
+
+            // Сначала закрашиваем «прилегающие» квадраты
+            fillSquaresForSegment(ctx, p1, p2, direction);
+
+            // Затем рисуем сам отрезок
+            ctx.moveTo(p1.x, p1.y);
+            ctx.lineTo(p2.x, p2.y);
+        }
+    }
+
+
+}
+
+function drawGrid(ctx, width, height, cellSize) {
+    ctx.strokeStyle = '#64b568'; // Цвет линий сетки
+    ctx.lineWidth = 1; // Толщина линий
+
+    // Рисуем вертикальные линии
+    for (let x = 0; x <= width; x += cellSize) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, height);
+        ctx.stroke();
+    }
+
+    // Рисуем горизонтальные линии
+    for (let y = 0; y <= height; y += cellSize) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(width, y);
+        ctx.stroke();
+    }
 }
 
 // Отрисовка ракеты
@@ -360,8 +407,11 @@ function drawRocket() {
         ctx.fill();
     }
     ctx.restore();
-    // Визуализация углов ракеты
-    // drawRocketPoints();
+
+    if (developerMode) {
+        // Визуализация углов ракеты
+        drawRocketPoints();
+    }
 }
 
 //Метод для отрисовки точек столкновения.
@@ -418,7 +468,7 @@ function drawFuelBar() {
     const barWidth = 200; // Ширина шкалы
     const barHeight = 20; // Высота шкалы
     const barX = WIDTH - 220; // Отступ от левого края
-    const barY = 130; // Отступ от верхнего края
+    const barY = HEIGHT - 50; // Отступ от верхнего края
 
     // Рамка шкалы
     ctx.strokeStyle = '#fff'; // Цвет рамки
@@ -442,7 +492,7 @@ function getTerrainHeightForDownSideAtX(xCoord) {
         let p1 = terrainPointsDownside[i];
         let p2 = terrainPointsDownside[i + 1];
         if (xCoord >= p1.x && xCoord <= p2.x) {
-            return p1.y;
+            return terrainPointsDownside[getBigger(terrainPointsDownside, terrainPointsDownside[i].x)].y;
         }
     }
 }
@@ -476,4 +526,96 @@ function checkStartingZone(){
     return rocketLeftX > x0 && rocketRightX < x1;
 }
 
+////////////////// 2 служебные функции
 
+function getBigger(terrain, value) {
+    const allIndexes = getAllIndexes(terrain, value);
+
+    let max = -1;
+    for (let i = 0; i < allIndexes.length; i++) {
+        if (max < allIndexes[i]) {
+            max = allIndexes[i];
+        }
+    }
+    return max;
+}
+
+function getAllIndexes(array, value) {
+    const indexes = [];
+    array.forEach((pair, index) => {
+        if (pair.x === value) {
+            indexes.push(index);
+        }
+    });
+    return indexes;
+}
+
+function getSegmentDirection(x1, y1, x2, y2) {
+    if (y1 === y2) {
+        return (x2 > x1) ? "horizontal-lr" : "horizontal-rl";
+    } else if (x1 === x2) {
+        return (y2 > y1) ? "vertical-td" : "vertical-bu";
+    }
+    return "unknown";
+}
+
+function fillSquaresForSegment(ctx, p1, p2, direction) {
+    ctx.fillStyle = "rgba(222,6,246,0.47)"; // Полупрозрачный красный
+
+    if (direction === "horizontal-lr") {
+        // Горизонтальный слева направо
+        // Линия идёт по строке p1.gridY
+        // Закрашиваем квадратики «снизу» (по канве это больший Y),
+        // но чтобы их верхняя граница совпадала с линией => cellPxY = yRow * scale
+        const yRow = p1.gridY;
+        const xStart = Math.min(p1.gridX, p2.gridX);
+        const xEnd = Math.max(p1.gridX, p2.gridX);
+
+        for (let xCell = xStart; xCell < xEnd; xCell++) {
+            const cellPxX = xCell * SQUARE_SIZE;
+            const cellPxY = yRow * SQUARE_SIZE;
+            ctx.fillRect(cellPxX, cellPxY, SQUARE_SIZE, SQUARE_SIZE);
+        }
+    }
+    else if (direction === "horizontal-rl") {
+        // Горизонтальный справа налево
+        // Квадратики рисуем сверху (т.е. их нижняя граница совпадает с линией).
+        // Значит, если линия идёт по yRow, то клетка будет «выше» => cellPxY = (yRow - 1) * scale.
+        const yRow = p1.gridY;
+        const xStart = Math.min(p1.gridX, p2.gridX);
+        const xEnd = Math.max(p1.gridX, p2.gridX);
+
+        for (let xCell = xStart; xCell < xEnd; xCell++) {
+            const cellPxX = xCell * SQUARE_SIZE;
+            const cellPxY = (yRow - 1) * SQUARE_SIZE;
+            ctx.fillRect(cellPxX, cellPxY, SQUARE_SIZE, SQUARE_SIZE);
+        }
+    }
+    else if (direction === "vertical-td") {
+        // Вертикальный сверху вниз
+        // Линия идёт по столбцу xCol.
+        // Квадратики слева от линии = xCol - 1, чтобы их правая граница совпадала с xCol.
+        const xCol = p1.gridX;
+        const yStart = Math.min(p1.gridY, p2.gridY);
+        const yEnd = Math.max(p1.gridY, p2.gridY);
+
+        for (let yCell = yStart; yCell < yEnd; yCell++) {
+            const cellPxX = (xCol - 1) * SQUARE_SIZE; // Слева
+            const cellPxY = yCell * SQUARE_SIZE;
+            ctx.fillRect(cellPxX, cellPxY, SQUARE_SIZE, SQUARE_SIZE);
+        }
+    }
+    else if (direction === "vertical-bu") {
+        // Вертикальный снизу вверх
+        // Квадратики рисуем «справа» вплотную, значит их левая граница = xCol.
+        const xCol = p1.gridX;
+        const yStart = Math.min(p1.gridY, p2.gridY);
+        const yEnd = Math.max(p1.gridY, p2.gridY);
+
+        for (let yCell = yStart; yCell < yEnd; yCell++) {
+            const cellPxX = xCol * SQUARE_SIZE; // вплотную к линии
+            const cellPxY = yCell * SQUARE_SIZE;
+            ctx.fillRect(cellPxX, cellPxY, SQUARE_SIZE, SQUARE_SIZE);
+        }
+    }
+}
