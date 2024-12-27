@@ -4,11 +4,13 @@
 body {
     margin: 0;
     padding: 0;
-    background: #000; /* фон космоса */
     color: #fff;
     font-family: sans-serif;
     display: flex;
     align-items: center;
+}
+body, button {
+    user-select: none;
 }
 
 
@@ -114,14 +116,14 @@ canvas {
 @media (max-width: 768px) {
     canvas {
         width: 100%;
-        height: 500px;
+        height: 450px;
     }
 }
 
 @media (max-width: 480px) {
     canvas {
         width: 90%;
-        height: 500px;
+        height: 450px;
     }
 }
 /* Проверка высоты экрана */
