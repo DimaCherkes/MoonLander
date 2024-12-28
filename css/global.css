@@ -18,7 +18,10 @@ html, body {
     background: #000; /* fallback цвет */
     position: relative;
 }
-
+body {
+    background: url('../assets/background_canvas.png') no-repeat center center fixed; /* Добавляем изображение */
+    background-size: cover; /* Картинка растягивается на весь экран */
+}
 /*
   .wrapper — контейнер, занимающий весь экран,
   чтобы центрировать меню по вертикали/горизонтали

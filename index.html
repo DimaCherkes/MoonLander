@@ -14,10 +14,11 @@
 <body>
 
 <!-- Main wrapper taking the entire screen (see global.css) -->
+<!-- Main wrapper taking the entire screen (see global.css) -->
 <div class="wrapper">
     <!-- Popup menu container -->
     <div id="menuContainer" class="menu-popup">
-        <h1 class="menu-title">Moon Lander</h1>
+        <h1 class="menu-title" id="menu-title">Moon Lander</h1>
         <!-- Main menu (buttons) -->
         <div id="menuView" class="menu-view">
             <button class="menu-button" id="playBtn">Play</button>
@@ -25,18 +26,66 @@
         </div>
         <!-- Rules window (hidden by default) -->
         <div id="rulesView" class="menu-view">
-            <h2>Game Rules</h2>
+            <h2 class="rules-header">Game Rules</h2>
             <div class="rules-text">
                 <p>
-                    Here you can place a detailed description of the rules. If the text is too long,
-                    a vertical scrollbar will appear. For example:
-                    <br/><br/>
-                    1. Control the rocket using arrow keys or swipes.<br/>
-                    2. Monitor your fuel levels.<br/>
-                    3. Do not exceed the maximum landing speed.<br/>
-                    ...
+                    Welcome to <strong class="rule-subtitle">Moon Lander</strong>! Your goal is to maneuver the rocket across multiple
+                    challenges without crashing. You can control the rocket in two different ways:
+                </p>
+                <ul>
+                    <li>
+                        <strong class="rule-subtitle">· Keyboard (Desktop):</strong> Use arrow keys <kbd>↑</kbd><kbd>←</kbd><kbd>→</kbd>
+                        or <kbd>W</kbd><kbd>A</kbd><kbd>D</kbd> for vertical/horizontal movement.
+                    </li>
+                    <li>
+                        <strong class="rule-subtitle">· Gyroscope (Mobile/Tablet):</strong> Tilt your device to steer the rocket.
+                        Hold your finger on the screen to activate the main thruster.
+                    </li>
+                </ul>
+                <hr class="rule-divider">
+                <p>
+                    <strong class="rule-subtitle">Objective:</strong> Safely land on the designated landing zone
+                    (marked in green) while staying within the allowed speed limit.
+                    If you land too hard, the rocket will crash!
+                </p>
+                <hr class="rule-divider">
+                <p>
+                    <strong class="rule-subtitle">Fuel Management:</strong> Watch the fuel bar on the right side of the screen.
+                    Every time you use thrusters, your fuel decreases. If you run out of fuel, you
+                    won't be able to control the rocket.
+                </p>
+                <hr class="rule-divider">
+                <p>
+                    <strong class="rule-subtitle">Collision & Restart:</strong> Collisions with terrain or screen edges can
+                    destroy the rocket. If you crash, you can try again or return to the main menu.
+                </p>
+                <hr class="rule-divider">
+                <p>
+                    <strong class="rule-subtitle">Multiple Levels / Tasks:</strong> The game supports multiple tasks
+                    (problems). Each task has a different landscape
+                    or difficulty.
+                </p>
+                <hr class="rule-divider">
+                <p>
+                    <strong class="rule-subtitle">Pause & Resume:</strong> Use the in-game <em>Pause</em> button to pause
+                    at any time. You can resume later without losing progress.
+                </p>
+                <hr class="rule-divider">
+                <p>
+                    <strong class="rule-subtitle">PWA Support:</strong> On supported devices, install the game as a
+                    Progressive Web App (PWA) to play offline. Your progress (completed tasks) is
+                    saved so you can continue later.
+                </p>
+                <hr class="rule-divider">
+                <p>
+                    <strong class="rule-subtitle">Hints & Solutions:</strong> Each task may include a hint button or
+                    even a solution if needed. However, using them might reduce your final score!
+                </p>
+                <p>
+                    Good luck, and enjoy the lunar adventure!
                 </p>
             </div>
+
             <button class="menu-button" id="backBtn">Back</button>
         </div>
 

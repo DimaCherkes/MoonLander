@@ -8,13 +8,14 @@
     justify-content: center;
     width: 420px;
     max-width: 90%;
-    min-height: 300px;
+    height: 400px;
+    max-height: 80vh; /* Максимальная высота 90% от высоты экрана */
     background: linear-gradient(135deg, #081a3a, #3a1a5d);
     border: 2px solid rgba(255,255,255,0.2);
     box-shadow: 0 0 30px rgba(88, 0, 255, 0.4), 0 0 60px rgba(255, 255, 255, 0.1);
     border-radius: 16px;
-    padding: 30px;
-    animation: popupAppear 0.8s ease forwards;
+    padding: 20px;
+    animation: popupAppear 0.2s ease forwards;
     position: relative;
 }
 
@@ -54,12 +55,15 @@
     margin: 8px;
     font-size: 16px;
 }
+#rulesView {
+    display: none;
+    height: 100%; /* Устанавливает высоту равной всплывающему окну */
+}
 
 /* Текст правил + скроллинг при избытке */
 .rules-text {
-    max-height: 180px;
+    max-height: 75%;
     overflow-y: auto;
-    margin-bottom: 15px;
     text-align: left;
     line-height: 1.5;
 }
@@ -72,4 +76,37 @@
 .rules-text::-webkit-scrollbar-thumb {
     background: rgba(150, 80, 255, 0.4);
     border-radius: 4px;
+}
+
+/* Подчеркивание заголовка */
+.rules-header {
+    text-decoration: underline;
+    color: #ffcc00; /* Золотистый цвет для заголовка */
+    margin-bottom: 15px;
+    font-size: 24px;
+}
+
+/* Стили мини-заголовков */
+.rule-subtitle {
+    color: #00ffcc; /* Бирюзовый цвет для подзаголовков */
+    font-weight: bold;
+}
+
+/* Стили для разделителей между правилами */
+.rule-divider {
+    border: none;
+    border-top: 1px solid rgba(255, 255, 255, 0.2); /* Полупрозрачная линия */
+    margin: 15px 0; /* Отступы сверху и снизу */
+}
+
+
+
+/* Проверка высоты экрана */
+@media (max-height: 600px) {
+    .menu-popup{
+        height: 250px;
+    }
+    .rules-text {
+        max-height: 60%;
+    }
 }
