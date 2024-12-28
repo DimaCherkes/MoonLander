@@ -14,6 +14,7 @@ let sidePower = 0.1;   // Сила боковых двигателей
 let fuel = 100;        // Запас топлива (можно отключить)
 let onGround = true;
 let gamePaused = false;
+
 const terrainTexture = new Image();
 terrainTexture.src = 'assets/surface.png'; // Путь к текстуре поверхности
 const backgroundImage = new Image();
@@ -24,7 +25,8 @@ let rocketWidth = 50;  // Ширина ракеты
 let rocketHeight = 60; // Высота ракеты
 const rocketImage = new Image();
 rocketImage.src = 'assets/rocket.png'; // Укажите путь к изображению ракеты
-const rocketImagePixelsInOneBlock = rocketWidth / 10;
+const oneRocketImagePixelWidth = rocketWidth / 10;
+const oneRocketImagePixelHeight = rocketHeight / 10;
 
 // Начальное положение ракеты (по центру сверху)
 let x;
@@ -32,8 +34,8 @@ let y;
 
 // Координаты сторон ракеты слева на право
 let rocketLeftX = x - rocketWidth / 2 + 2;
-let rocketMiddleLeftX = x - rocketWidth / 4;
-let rocketMiddleRightX = x + rocketWidth / 4;
+// let rocketMiddleLeftX = x - rocketWidth / 4;
+// let rocketMiddleRightX = x + rocketWidth / 4;
 let rocketRightX = x + rocketWidth / 2 - 2;
 let rocketTopY = y - rocketHeight / 2;
 let rocketBottomY = y + rocketHeight / 2;
@@ -65,6 +67,20 @@ let startZone;
 const landingSpeedThreshold = 2.0;
 
 // Массив со всеми сообщениями для пользователя
+let collisionMessage = {
+    TOP: "Столкновение верхней частью.",
+    LEFTBOTTOM: "Вы зацепили левый двигатель.",
+    RIGHTBOTTOM: "Вы зацепили правый двигатель.",
+    MIDDLEBOTTOM: "Ракета должна касаться поверхности всей нижней частью."
+}
+
+// const rocketPoints = [
+//     [x, rocketTopY],
+//     [rocketLeftX, rocketBottomY],
+//     [rocketRightX, rocketBottomY],
+//     [x, rocketBottomY]
+// ];
+
 let gameMessageArray = [
     'Посадка удалась! Поздравляем!',
     'Столкновение с краем экрана.',
@@ -74,6 +90,8 @@ let gameMessageArray = [
     'Столкновение с боковой частью ракеты!',
     'Посадка мимо посадочной зоны'
 ];
+
+let mapTriggers = [];
 
 const developerMode = true;
 
@@ -105,6 +123,7 @@ function loadTerrain() {
             // формула для расчета стартового положения ракеты
             x = terrainPointsDownside[startZone].x + (rocketWidth / 2) + 5;
             y = terrainPointsDownside[startZone].y - (rocketHeight / 2);
+            calculateSquares("init");
             gameLoop(); // Запускаем игровой цикл после загрузки данных
         })
         .catch((error) => {
@@ -121,7 +140,7 @@ function updatePhysics() {
     // Управление двигателем
     if ((upPressed || touchActive) && fuel > 0) {
         if (onGround)
-            onGround =  false;
+            onGround = false;
         speedY -= thrustPower;
         fuel -= 0.1; // Расход топлива
     }
@@ -143,74 +162,77 @@ function updatePhysics() {
     y += speedY; // Обновляем положение по Y
 
     rocketLeftX = x - rocketWidth / 2 + 2;
-    rocketMiddleLeftX = x - rocketWidth / 4;
-    rocketMiddleRightX = x + rocketWidth / 4;
+    // rocketMiddleLeftX = x - rocketWidth / 4;
+    // rocketMiddleRightX = x + rocketWidth / 4;
     rocketRightX = x + rocketWidth / 2 - 2;
     rocketTopY = y - rocketHeight / 2;
     rocketBottomY = y + rocketHeight / 2;
 
     // Проверка столкновений
-    let collision = checkCollision();
-    switch (collision) {
-        case 0: // Удачная посадка
-            if (checkLandingZone()) {
-                showCollisionModal(gameMessageArray[0]); // «Посадка удалась! Поздравляем!»
-            } else {
-                showCollisionModal(gameMessageArray[6]); // «Посадка мимо посадочной зоны»
-            }
-            break;
-
-        case 1: // Столкновение с краем экрана
-            showCollisionModal(gameMessageArray[1]);
-            break;
-        case 2: // Столкновение верхней частью
-            showCollisionModal(gameMessageArray[2]);
-            break;
-        case 3: // Жесткая посадка
-            showCollisionModal(gameMessageArray[3]);
-            break;
-        case 4: // Неправильное приземление
-            showCollisionModal(gameMessageArray[4]);
-            break;
-        case 5: // Столкновение с боковой частью ракеты
-            showCollisionModal(gameMessageArray[5]);
-            break;
-        case 6:
-            if (rocketBottomY >= terrainPointsDownside[startZone].y ) {
-                y = terrainPointsDownside[startZone].y - rocketHeight / 2;
-                if (Math.abs(speedY) > landingSpeedThreshold || Math.abs(speedX) > landingSpeedThreshold) {
-                    showCollisionModal(gameMessageArray[3]);
-                }
-                speedX = 0;
-                speedY = 0;
-                onGround = true;
-            }
-            break;
-    }
+    checkCollision();
 }
 
 function checkCollision() {
-    // Проверка столкновения с ландшафтом для каждой стороны
-    const leftTerrainHeight = getTerrainHeightForDownSideAtX(rocketLeftX);
-    const rightTerrainHeight = getTerrainHeightForDownSideAtX(rocketRightX);
-    const centerTerrainHeight = getTerrainHeightForDownSideAtX(x);
-    //Это я сделал доп проверки на приземление, чтобы избежать некорректной посадки
-    const middleLeftTerrainHeight = getTerrainHeightForDownSideAtX(rocketMiddleLeftX);
-    const middleRightTerrainHeight = getTerrainHeightForDownSideAtX(rocketMiddleRightX);
 
+    let checkCollisionForAllRocketPoints = [
+        [x, rocketTopY],
+        [rocketLeftX, rocketBottomY],
+        [rocketRightX, rocketBottomY],
+        [x, rocketBottomY]
+    ]
 
-    // Проверка столкновения с верхом
-    if (y - (rocketHeight / 2) <= getTerrainHeightForUpSideAtX(x) ||
-        y - (rocketHeight / 4) <= getTerrainHeightForUpSideAtX(x - (rocketWidth / 4)) ||
-        y - (rocketHeight / 4) <= getTerrainHeightForUpSideAtX(x + (rocketWidth / 4)) ||
-        y + (rocketHeight / 4) <= getTerrainHeightForUpSideAtX(x - (rocketWidth / 2)) ||
-        y + (rocketHeight / 4) <= getTerrainHeightForUpSideAtX(x + (rocketWidth / 2))) {
-        return 2;
+    let collisionIndexes = [];
+
+    for (let i = 0; i < mapTriggers.length; i++) {
+        // mapSquare = [
+        // [x1, x2],    [0, 15],
+        // [y1, y2]     [345, 360]
+        // ]
+        for (let j = 0; j < checkCollisionForAllRocketPoints.length; j++) {
+            let mapSquare = mapTriggers[i];
+            // проверка на то, что точка находится в площади игрового квадрата
+            if (mapSquare[0][0] <= checkCollisionForAllRocketPoints[j][0] + 1  &&
+                mapSquare[0][1] >= checkCollisionForAllRocketPoints[j][0] - 1 &&
+                mapSquare[1][0] <= checkCollisionForAllRocketPoints[j][1] &&
+                mapSquare[1][1] >= checkCollisionForAllRocketPoints[j][1] - 1) {
+
+                // определяем с какой точкой было соприкосновение и записываем в массив
+                switch (j) {
+                    case 0:
+                        collisionIndexes.push(collisionMessage.TOP); break;
+                    case 1:
+                        collisionIndexes.push(collisionMessage.LEFTBOTTOM); break;
+                    case 2:
+                        collisionIndexes.push(collisionMessage.RIGHTBOTTOM); break;
+                    case 3:
+                        collisionIndexes.push(collisionMessage.MIDDLEBOTTOM); break;
+                }
+            }
+        }
     }
 
-    if (checkStartingZone() && rocketTopY > 0 && rocketBottomY < HEIGHT){
+    // проверка на starting zone
+    if (checkStartingZone() && rocketBottomY >= terrainPointsDownside[startZone].y) {
+        y = terrainPointsDownside[startZone].y - rocketHeight / 2;
+        if (Math.abs(speedY) > landingSpeedThreshold || Math.abs(speedX) > landingSpeedThreshold) {
+            showCollisionModal(gameMessageArray[3]);
+        }
+        speedX = 0;
+        speedY = 0;
+        onGround = true;
+
+        return 6; // пока пусть возвращает 6
+    }
+
+    // проверка на landing zone
+    if (checkLandingZone() && rocketBottomY >= terrainPointsDownside[landingZone].y) {
+        if (Math.abs(speedY) > landingSpeedThreshold || Math.abs(speedX) > landingSpeedThreshold)
+            showCollisionModal(gameMessageArray[3]);
+        else
+            showCollisionModal(gameMessageArray[0]);
         return 6;
     }
+
     // Проверка боковых сторон
     if (rocketLeftX < 0 || rocketRightX > WIDTH) {
         return 1;
@@ -219,24 +241,10 @@ function checkCollision() {
     if (rocketTopY < 0) {
         return 2;
     }
-    // Проверка нижней стороны
-    if (rocketBottomY >= centerTerrainHeight) {
-        if (Math.abs(speedY) > landingSpeedThreshold || Math.abs(speedX) > landingSpeedThreshold) {
-            y = centerTerrainHeight - rocketHeight / 2;
-            return 3;
-        }
-        else if(leftTerrainHeight !== rightTerrainHeight ||
-            rightTerrainHeight !== centerTerrainHeight){
-            return 4;
-        }
-        else {
-            return 0;
-        }
-    }
-    // Проверка столкновения левых и правых сторон
-    if (rocketBottomY >= leftTerrainHeight || rocketBottomY >= rightTerrainHeight
-        || rocketBottomY >= middleLeftTerrainHeight || rocketBottomY >= middleRightTerrainHeight) {
-        return 5;
+
+    // если хоть 1 точка пересеклась с ландшафтом, то вызываем сообщение для этой точки
+    if (collisionIndexes.length > 0) {
+        showCollisionModal(collisionIndexes[0]);
     }
 }
 
@@ -266,11 +274,18 @@ function gameLoop() {
     drawRocket();    // Рисуем ракету
     drawFuelBar(); // Отрисовка шкалы топлива
 
+    //
+    ctx.beginPath();
+    ctx.arc(5, 350, 3, 0, 2 * Math.PI);
+    ctx.fill();
+//
     requestAnimationFrame(gameLoop);
 }
+
 function drawBackground() {
     ctx.drawImage(backgroundImage, 0, 0, WIDTH, HEIGHT); // Растягиваем фон на весь Canvas
 }
+
 // Функция для отрисовки ландшафта
 function drawTerrain() {
     // 1) Сначала рисуем весь ландшафт белым цветом
@@ -330,34 +345,11 @@ function drawTerrain() {
     ctx.stroke();
     ctx.closePath();
 
-    if (developerMode){
+    if (developerMode) {
         // рисуем сетку
         drawGrid(ctx, WIDTH, HEIGHT, SQUARE_SIZE);
-
-        const scaledPoints = terrainPointsDownside.map(pt => ({
-            x: pt.x,   // пиксели
-            y: pt.y,   // пиксели
-            gridX: pt.x / SQUARE_SIZE,                 // «ячейка» по X
-            gridY: pt.y / SQUARE_SIZE                 // «ячейка» по Y
-        }));
-
-        for (let i = 0; i < scaledPoints.length - 1; i++) {
-            const p1 = scaledPoints[i];
-            const p2 = scaledPoints[i + 1];
-
-            // Определяем направление
-            const direction = getSegmentDirection(p1.gridX, p1.gridY, p2.gridX, p2.gridY);
-
-            // Сначала закрашиваем «прилегающие» квадраты
-            fillSquaresForSegment(ctx, p1, p2, direction);
-
-            // Затем рисуем сам отрезок
-            ctx.moveTo(p1.x, p1.y);
-            ctx.lineTo(p2.x, p2.y);
-        }
+        calculateSquares("developer");
     }
-
-
 }
 
 function drawGrid(ctx, width, height, cellSize) {
@@ -417,28 +409,31 @@ function drawRocket() {
 //Метод для отрисовки точек столкновения.
 function drawRocketPoints() {
 
+    // ctx.fillStyle = 'blue';
+    // for (let i = 0; i < rocketPoints.length; i++) {
+    //     ctx.beginPath();
+    //     ctx.arc(rocketPoints[i][0], rocketPoints[i][1], 2, 0, 2 * Math.PI);
+    //     ctx.fill();
+    // }
+
     ctx.fillStyle = 'blue';
     // Верх
     ctx.beginPath();
-    ctx.arc(rocketLeftX + 5 * rocketImagePixelsInOneBlock, rocketTopY, 3, 0, 2 * Math.PI);
+    ctx.arc(rocketLeftX , rocketTopY, 3, 0, 2 * Math.PI);
     ctx.fill();
 
     // точка 3/4 до верха
     ctx.beginPath();
-    ctx.arc(rocketLeftX + 2 * rocketImagePixelsInOneBlock, rocketTopY + 3 * rocketImagePixelsInOneBlock, 3, 0, 2 * Math.PI);
+    ctx.arc(rocketLeftX, rocketTopY, 3, 0, 2 * Math.PI);
     ctx.fill();
 
     ctx.beginPath();
-    ctx.arc(rocketRightX - 2 * rocketImagePixelsInOneBlock, rocketTopY + 3 * rocketImagePixelsInOneBlock, 3, 0, 2 * Math.PI);
+    ctx.arc(rocketRightX, rocketTopY, 3, 0, 2 * Math.PI);
     ctx.fill();
 
     // точка 1/2 до верха
     ctx.beginPath();
-    ctx.arc(rocketLeftX + rocketImagePixelsInOneBlock, rocketTopY + 6 * rocketImagePixelsInOneBlock, 3, 0, 2 * Math.PI);
-    ctx.fill();
-
-    ctx.beginPath();
-    ctx.arc(rocketRightX - rocketImagePixelsInOneBlock, rocketTopY + 6 * rocketImagePixelsInOneBlock, 3, 0, 2 * Math.PI);
+    ctx.arc(rocketLeftX, rocketTopY , 3, 0, 2 * Math.PI);
     ctx.fill();
 
     // Нижний левый угол
@@ -454,14 +449,6 @@ function drawRocketPoints() {
     ctx.arc(x, rocketBottomY, 3, 0, 2 * Math.PI);
     ctx.fill();
 
-    // Точка между левым нижним углом и нижней центральной точкой
-    ctx.beginPath();
-    ctx.arc(rocketMiddleLeftX, rocketBottomY, 3, 0, 2 * Math.PI);
-    ctx.fill();
-    // Точка между правым нижним углом и нижней центральной точкой
-    ctx.beginPath();
-    ctx.arc(rocketMiddleRightX, rocketBottomY, 3, 0, 2 * Math.PI);
-    ctx.fill();
 }
 
 function drawFuelBar() {
@@ -477,7 +464,7 @@ function drawFuelBar() {
 
     // Заполненная часть шкалы
     const fuelWidth = (fuel / 100) * barWidth; // Пропорциональная ширина
-    ctx.fillStyle = fuel > 70 ? '#0f0' : (fuel >50)?'#ffcb00':(fuel >20)?'#ff7700':'#f00'; // Цвет: зелёный, если топлива больше 20%, иначе красный
+    ctx.fillStyle = fuel > 70 ? '#0f0' : (fuel > 50) ? '#ffcb00' : (fuel > 20) ? '#ff7700' : '#f00'; // Цвет: зелёный, если топлива больше 20%, иначе красный
     ctx.fillRect(barX, barY, fuelWidth, barHeight);
 
     // Текст уровня топлива
@@ -486,30 +473,8 @@ function drawFuelBar() {
     ctx.fillText(`Fuel: ${Math.round(fuel)}%`, barX, barY - 5); // Текст над шкалой
 }
 
-// Функция для проверки высоты нижнего ландшафта в заданной x-координате
-function getTerrainHeightForDownSideAtX(xCoord) {
-    for (let i = 0; i < terrainPointsDownside.length - 1; i++) {
-        let p1 = terrainPointsDownside[i];
-        let p2 = terrainPointsDownside[i + 1];
-        if (xCoord >= p1.x && xCoord <= p2.x) {
-            return terrainPointsDownside[getBigger(terrainPointsDownside, terrainPointsDownside[i].x)].y;
-        }
-    }
-}
-
-// Функция для проверки высоты ландшафта в заданной x-координате
-function getTerrainHeightForUpSideAtX(xCoord) {
-    for (let i = 0; i < terrainPointsUpside.length - 1; i++) {
-        let p1 = terrainPointsUpside[i];
-        let p2 = terrainPointsUpside[i + 1];
-        if (xCoord >= p1.x && xCoord <= p2.x) {
-            return p1.y;
-        }
-    }
-}
-
 // Проверка правильной посадочной зоны
-function checkLandingZone(){
+function checkLandingZone() {
     // количество пикселей слева до начала посадочной зоны
     let x0 = terrainPointsDownside[landingZone].x;
     // количество пикселей слева до конца посадочной зоны
@@ -518,36 +483,12 @@ function checkLandingZone(){
 }
 
 // Проверка правильной стартовой зоны
-function checkStartingZone(){
+function checkStartingZone() {
     // количество пикселей слева до начала посадочной зоны
     let x0 = terrainPointsDownside[startZone].x;
     // количество пикселей слева до конца посадочной зоны
     let x1 = terrainPointsDownside[startZone + 1].x;
     return rocketLeftX > x0 && rocketRightX < x1;
-}
-
-////////////////// 2 служебные функции
-
-function getBigger(terrain, value) {
-    const allIndexes = getAllIndexes(terrain, value);
-
-    let max = -1;
-    for (let i = 0; i < allIndexes.length; i++) {
-        if (max < allIndexes[i]) {
-            max = allIndexes[i];
-        }
-    }
-    return max;
-}
-
-function getAllIndexes(array, value) {
-    const indexes = [];
-    array.forEach((pair, index) => {
-        if (pair.x === value) {
-            indexes.push(index);
-        }
-    });
-    return indexes;
 }
 
 function getSegmentDirection(x1, y1, x2, y2) {
@@ -559,39 +500,58 @@ function getSegmentDirection(x1, y1, x2, y2) {
     return "unknown";
 }
 
-function fillSquaresForSegment(ctx, p1, p2, direction) {
+function fillSquaresForSegment(ctx, p1, p2, direction, mode, side) {
     ctx.fillStyle = "rgba(222,6,246,0.47)"; // Полупрозрачный красный
 
     if (direction === "horizontal-lr") {
         // Горизонтальный слева направо
-        // Линия идёт по строке p1.gridY
         // Закрашиваем квадратики «снизу» (по канве это больший Y),
-        // но чтобы их верхняя граница совпадала с линией => cellPxY = yRow * scale
+        // но чтобы их верхняя граница совпадала с линией => cellPxY = yRow
         const yRow = p1.gridY;
         const xStart = Math.min(p1.gridX, p2.gridX);
         const xEnd = Math.max(p1.gridX, p2.gridX);
 
         for (let xCell = xStart; xCell < xEnd; xCell++) {
             const cellPxX = xCell * SQUARE_SIZE;
-            const cellPxY = yRow * SQUARE_SIZE;
-            ctx.fillRect(cellPxX, cellPxY, SQUARE_SIZE, SQUARE_SIZE);
+            let cellPxY;
+            // для верхней части карты нужно взять противоположный квадрат относительно линии
+            if (side === "down")
+                cellPxY = yRow * SQUARE_SIZE;  // Ниже
+            else
+                cellPxY = (yRow - 1) * SQUARE_SIZE;  // Выше
+
+            if (mode === "init") {
+                let square = [[cellPxX, cellPxX + SQUARE_SIZE], [cellPxY, cellPxY + SQUARE_SIZE]];
+                mapTriggers.push(square);
+            } else if (mode === "developer") {
+                ctx.fillRect(cellPxX, cellPxY, SQUARE_SIZE, SQUARE_SIZE)
+            }
         }
-    }
-    else if (direction === "horizontal-rl") {
+    } else if (direction === "horizontal-rl") {
         // Горизонтальный справа налево
         // Квадратики рисуем сверху (т.е. их нижняя граница совпадает с линией).
-        // Значит, если линия идёт по yRow, то клетка будет «выше» => cellPxY = (yRow - 1) * scale.
+        // Значит, если линия идёт по yRow, то клетка будет «выше» => cellPxY = (yRow - 1)
         const yRow = p1.gridY;
         const xStart = Math.min(p1.gridX, p2.gridX);
         const xEnd = Math.max(p1.gridX, p2.gridX);
 
         for (let xCell = xStart; xCell < xEnd; xCell++) {
             const cellPxX = xCell * SQUARE_SIZE;
-            const cellPxY = (yRow - 1) * SQUARE_SIZE;
-            ctx.fillRect(cellPxX, cellPxY, SQUARE_SIZE, SQUARE_SIZE);
+            // для верхней части карты нужно взять противоположный квадрат относительно линии
+            let cellPxY;
+            if (side === "down")
+                cellPxY = (yRow - 1) * SQUARE_SIZE; // Выше
+            else
+                cellPxY = yRow * SQUARE_SIZE; // Ниже
+
+            if (mode === "init") {
+                let square = [[cellPxX, cellPxX + SQUARE_SIZE], [cellPxY, cellPxY + SQUARE_SIZE]];
+                mapTriggers.push(square);
+            } else if (mode === "developer") {
+                ctx.fillRect(cellPxX, cellPxY, SQUARE_SIZE, SQUARE_SIZE)
+            }
         }
-    }
-    else if (direction === "vertical-td") {
+    } else if (direction === "vertical-td") {
         // Вертикальный сверху вниз
         // Линия идёт по столбцу xCol.
         // Квадратики слева от линии = xCol - 1, чтобы их правая граница совпадала с xCol.
@@ -600,12 +560,22 @@ function fillSquaresForSegment(ctx, p1, p2, direction) {
         const yEnd = Math.max(p1.gridY, p2.gridY);
 
         for (let yCell = yStart; yCell < yEnd; yCell++) {
-            const cellPxX = (xCol - 1) * SQUARE_SIZE; // Слева
+            let cellPxX;
+            // для верхней части карты нужно взять противоположный квадрат относительно линии
+            if (side === "down")
+                cellPxX = (xCol - 1) * SQUARE_SIZE; // Слева
+            else
+                cellPxX = (xCol) * SQUARE_SIZE; // Справа
+
             const cellPxY = yCell * SQUARE_SIZE;
-            ctx.fillRect(cellPxX, cellPxY, SQUARE_SIZE, SQUARE_SIZE);
+            if (mode === "init") {
+                let square = [[cellPxX, cellPxX + SQUARE_SIZE], [cellPxY, cellPxY + SQUARE_SIZE]];
+                mapTriggers.push(square);
+            } else if (mode === "developer") {
+                ctx.fillRect(cellPxX, cellPxY, SQUARE_SIZE, SQUARE_SIZE)
+            }
         }
-    }
-    else if (direction === "vertical-bu") {
+    } else if (direction === "vertical-bu") {
         // Вертикальный снизу вверх
         // Квадратики рисуем «справа» вплотную, значит их левая граница = xCol.
         const xCol = p1.gridX;
@@ -613,9 +583,57 @@ function fillSquaresForSegment(ctx, p1, p2, direction) {
         const yEnd = Math.max(p1.gridY, p2.gridY);
 
         for (let yCell = yStart; yCell < yEnd; yCell++) {
-            const cellPxX = xCol * SQUARE_SIZE; // вплотную к линии
+            let cellPxX;
+            // для верхней части карты нужно взять противоположный квадрат относительно линии
+            if (side === "down")
+                cellPxX = xCol * SQUARE_SIZE; // Справа
+            else
+                cellPxX = (xCol - 1) * SQUARE_SIZE;
+
             const cellPxY = yCell * SQUARE_SIZE;
-            ctx.fillRect(cellPxX, cellPxY, SQUARE_SIZE, SQUARE_SIZE);
+            if (mode === "init") {
+                let square = [[cellPxX, cellPxX + SQUARE_SIZE], [cellPxY, cellPxY + SQUARE_SIZE]];
+                mapTriggers.push(square);
+            } else if (mode === "developer") {
+                ctx.fillRect(cellPxX, cellPxY, SQUARE_SIZE, SQUARE_SIZE)
+            }
         }
+    }
+}
+
+// mode: can be "init" mode (to calculate and save squares in mapTriggers)
+function calculateSquares(mode) {
+    // Для нижней части
+    const scaledPoints = terrainPointsDownside.map(pt => ({
+        x: pt.x,   // пиксели
+        y: pt.y,   // пиксели
+        gridX: pt.x / SQUARE_SIZE,                 // «ячейка» по X
+        gridY: pt.y / SQUARE_SIZE                 // «ячейка» по Y
+    }));
+
+    for (let i = 0; i < scaledPoints.length - 1; i++) {
+        const p1 = scaledPoints[i];
+        const p2 = scaledPoints[i + 1];
+        // Определяем направление
+        const direction = getSegmentDirection(p1.gridX, p1.gridY, p2.gridX, p2.gridY);
+        // закрашиваем «прилегающие» квадраты
+        fillSquaresForSegment(ctx, p1, p2, direction, mode, "down");
+    }
+
+    // Для верхней части
+    const scaledPointsUpside = terrainPointsUpside.map(pt => ({
+        x: pt.x,   // пиксели
+        y: pt.y,   // пиксели
+        gridX: pt.x / SQUARE_SIZE,                 // «ячейка» по X
+        gridY: pt.y / SQUARE_SIZE                 // «ячейка» по Y
+    }));
+
+    for (let i = 0; i < scaledPointsUpside.length - 1; i++) {
+        const p1 = scaledPointsUpside[i];
+        const p2 = scaledPointsUpside[i + 1];
+        // Определяем направление
+        const direction = getSegmentDirection(p1.gridX, p1.gridY, p2.gridX, p2.gridY);
+        // закрашиваем «прилегающие» квадраты
+        fillSquaresForSegment(ctx, p1, p2, direction, mode, "up");
     }
 }
