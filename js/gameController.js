@@ -88,7 +88,7 @@ function showCollisionModal(message) {
     modal.style.display = 'flex';
 
     // Если успех (gameMessageArray[0] = 'Посадка удалась!'), включаем nextLevelBtn
-    if (message === gameMessageArray[0]) {
+    if (message === collisionMessage.SUCCESS) {
         nextLevelBtn.disabled = false;
     } else {
         // Иначе отключаем

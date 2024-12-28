@@ -70,24 +70,18 @@ let collisionMessage = {
     LEFTENGINE: "Вы зацепили левый двигатель.",
     RIGHTENGINE: "Вы зацепили правый двигатель.",
     MIDDLEBOTTOM: "Ракета должна касаться поверхности всей нижней частью.",
-    SIDE: "Столкновение боковой частью."
+    SIDE: "Столкновение боковой частью.",
+    SUCCESS: "Посадка удалась! Поздравляем!",
+    BADLANDING: "Жесткая посадка. Слишком большая скорость.",
+    NEARSTART: "Посадка мимо стартовой зоны. Вы задели непригодную поверхность.",
+    OUTSIDE: "Столкновение с краем экрана."
 }
 
 const rocketPoints = [];
 
-let gameMessageArray = [
-    'Посадка удалась! Поздравляем!',
-    'Столкновение с краем экрана.',
-    'Столкновение верхней частью.',
-    'Жесткая посадка.',
-    'Неправильное приземление. Ракета должна полностью сесть на поверхность.',
-    'Столкновение с боковой частью ракеты!',
-    'Посадка мимо посадочной зоны'
-];
-
 let mapTriggers = [];
 
-const developerMode = false;
+let developerMode = true;
 
 async function main() {
     const data = await loadData();
@@ -192,7 +186,7 @@ function updatePhysics() {
 
 function checkCollision() {
 
-    let collisionIndexes = [];
+    let messages = [];
     // здесь мы проходим по всем квадратам из массива mapTriggers
     // а затем проходим по массиву всех точек и проверяем нахождение точки в плоскости квадрата
     for (let i = 0; i < mapTriggers.length; i++) {
@@ -201,12 +195,12 @@ function checkCollision() {
         // [y1, y2]              [345, 360]
         // ]
         for (let j = 0; j < rocketPoints.length; j++) {
-            let mapSquare = mapTriggers[i];
+            let squareCoords = mapTriggers[i];
             // проверка на то, что точка находится в площади игрового квадрата
-            if (mapSquare[0][0] <= rocketPoints[j][0] + 1 &&
-                mapSquare[0][1] >= rocketPoints[j][0] - 1 &&
-                mapSquare[1][0] <= rocketPoints[j][1] &&
-                mapSquare[1][1] >= rocketPoints[j][1] - 1) {
+            if (squareCoords[0][0] <= rocketPoints[j][0] + 1 &&
+                squareCoords[0][1] >= rocketPoints[j][0] - 1 &&
+                squareCoords[1][0] <= rocketPoints[j][1] &&
+                squareCoords[1][1] >= rocketPoints[j][1] - 1) {
 
                 // определяем с какой точкой было соприкосновение и записываем в массив
                 switch (j) {
@@ -214,23 +208,23 @@ function checkCollision() {
                     case 1:
                     case 2:
                     case 3:
-                        collisionIndexes.push(collisionMessage.SIDE);
+                        messages.push(collisionMessage.SIDE);
                         break;
                     case 4:
                     case 5:
                     case 6:
-                        collisionIndexes.push(collisionMessage.TOP);
+                        messages.push(collisionMessage.TOP);
                         break;
                     case 7:
                     case 8:
-                        collisionIndexes.push(collisionMessage.LEFTENGINE);
+                        messages.push(collisionMessage.LEFTENGINE);
                         break;
                     case 9:
                     case 10:
-                        collisionIndexes.push(collisionMessage.RIGHTENGINE);
+                        messages.push(collisionMessage.RIGHTENGINE);
                         break;
                     case 11:
-                        collisionIndexes.push(collisionMessage.MIDDLEBOTTOM);
+                        messages.push(collisionMessage.MIDDLEBOTTOM);
                         break;
                 }
             }
@@ -241,7 +235,7 @@ function checkCollision() {
     if (checkStartingZone() && rocketBottomY >= terrainPointsDownside[startZone].y) {
         y = terrainPointsDownside[startZone].y - rocketHeight / 2;
         if (Math.abs(speedY) > landingSpeedThreshold || Math.abs(speedX) > landingSpeedThreshold) {
-            showCollisionModal(gameMessageArray[3]);
+            showCollisionModal(collisionMessage.BADLANDING);
         }
         speedX = 0;
         speedY = 0;
@@ -252,22 +246,32 @@ function checkCollision() {
     // проверка на landing zone
     if (checkLandingZone() && rocketBottomY >= terrainPointsDownside[landingZone].y) {
         if (Math.abs(speedY) > landingSpeedThreshold || Math.abs(speedX) > landingSpeedThreshold)
-            showCollisionModal(gameMessageArray[3]);
+            showCollisionModal(collisionMessage.BADLANDING);
         else
-            showCollisionModal(gameMessageArray[0]);
+            showCollisionModal(collisionMessage.SUCCESS);
         return 0;
     }
     // Проверка боковых сторон
     if (rocketLeftX < 0 || rocketRightX > WIDTH) {
+        showCollisionModal(collisionMessage.OUTSIDE);
         return 0;
     }
     // Проверка верхней стороны
     if (rocketTopY < 0) {
+        showCollisionModal(collisionMessage.TOP);
         return 0;
     }
+
     // если хоть 1 точка пересеклась с ландшафтом, то вызываем сообщение для этой точки
-    if (collisionIndexes.length > 0) {
-        showCollisionModal(collisionIndexes[0]);
+    if (messages.length > 0) {
+        if (rocketBottomY >= terrainPointsDownside[startZone].y) {
+            showCollisionModal(collisionMessage.NEARSTART);
+        }
+        else if (messages.includes(collisionMessage.MIDDLEBOTTOM)){
+            showCollisionModal(collisionMessage.MIDDLEBOTTOM);
+        } else {
+            showCollisionModal(messages[0]);
+        }
     }
 }
 
@@ -297,7 +301,6 @@ function gameLoop() {
     drawRocket();    // Рисуем ракету
     drawFuelBar(); // Отрисовка шкалы топлива
 
-//
     requestAnimationFrame(gameLoop);
 }
 
@@ -483,6 +486,14 @@ function getSegmentDirection(x1, y1, x2, y2) {
     }
     return "unknown";
 }
+
+// сохранение квадратов в mapTrigger + отрисовка этих квадратов
+// ctx - canvas
+// p1, p2 - points
+// direction - string like "horizontal-lr"
+// mode - init мод - используется 1 раз в начале для сохранения карты,
+// потом эта функция используется только для графической отрисовки
+// side - это или верхняя часть или нижняя часть карты (terrainPointsDownside/terrainPointsUpside)
 
 function fillSquaresForSegment(ctx, p1, p2, direction, mode, side) {
     ctx.fillStyle = "rgba(222,6,246,0.47)"; // Полупрозрачный красный
