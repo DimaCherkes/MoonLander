@@ -32,13 +32,11 @@ const oneRocketImagePixelHeight = rocketHeight / 10;
 let x;
 let y;
 
-// Координаты сторон ракеты слева на право
-let rocketLeftX = x - rocketWidth / 2 + 2;
-// let rocketMiddleLeftX = x - rocketWidth / 4;
-// let rocketMiddleRightX = x + rocketWidth / 4;
-let rocketRightX = x + rocketWidth / 2 - 2;
-let rocketTopY = y - rocketHeight / 2;
-let rocketBottomY = y + rocketHeight / 2;
+// Координаты сторон ракеты
+let rocketLeftX;
+let rocketRightX;
+let rocketTopY;
+let rocketBottomY;
 
 // Скорости по осям
 let speedX = 0; // Горизонтальная скорость
@@ -69,17 +67,13 @@ const landingSpeedThreshold = 2.0;
 // Массив со всеми сообщениями для пользователя
 let collisionMessage = {
     TOP: "Столкновение верхней частью.",
-    LEFTBOTTOM: "Вы зацепили левый двигатель.",
-    RIGHTBOTTOM: "Вы зацепили правый двигатель.",
-    MIDDLEBOTTOM: "Ракета должна касаться поверхности всей нижней частью."
+    LEFTENGINE: "Вы зацепили левый двигатель.",
+    RIGHTENGINE: "Вы зацепили правый двигатель.",
+    MIDDLEBOTTOM: "Ракета должна касаться поверхности всей нижней частью.",
+    SIDE: "Столкновение боковой частью."
 }
 
-// const rocketPoints = [
-//     [x, rocketTopY],
-//     [rocketLeftX, rocketBottomY],
-//     [rocketRightX, rocketBottomY],
-//     [x, rocketBottomY]
-// ];
+const rocketPoints = [];
 
 let gameMessageArray = [
     'Посадка удалась! Поздравляем!',
@@ -93,42 +87,66 @@ let gameMessageArray = [
 
 let mapTriggers = [];
 
-const developerMode = true;
+const developerMode = false;
 
-// Запуск игрового цикла
-loadTerrain();
+async function main() {
+    const data = await loadData();
 
-function loadTerrain() {
-    fetch('terrain4.json')
-        .then((response) => {
-            if (!response.ok) {
-                throw new Error(`Ошибка загрузки: ${response.status}`);
-            }
-            return response.json();
-        })
-        .then((data) => {
-            terrainPointsDownside = data.terrain[0].map(point => ({
-                x: point.x * SQUARE_SIZE,
-                y: HEIGHT - point.y * SQUARE_SIZE
-            }));
+    // получаем координаты в пикселях, landingZone, startingZone, x, y
+    transformData(data);
 
-            terrainPointsUpside = data.terrain[1].map(point => ({
-                x: point.x * SQUARE_SIZE,
-                y: HEIGHT - point.y * SQUARE_SIZE
-            }));
+    rocketLeftX = x - rocketWidth / 2 + 2;
+    rocketRightX = x + rocketWidth / 2 - 2;
+    rocketTopY = y - rocketHeight / 2;
+    rocketBottomY = y + rocketHeight / 2;
 
-            landingZone = data.landingZone;
-            startZone = data.startZone;
+    updateRocketPoints();
 
-            // формула для расчета стартового положения ракеты
-            x = terrainPointsDownside[startZone].x + (rocketWidth / 2) + 5;
-            y = terrainPointsDownside[startZone].y - (rocketHeight / 2);
-            calculateSquares("init");
-            gameLoop(); // Запускаем игровой цикл после загрузки данных
-        })
-        .catch((error) => {
-            console.error('Не удалось загрузить ландшафт:', error);
-        });
+    calculateSquares("init");
+    gameLoop(); // Запускаем игровой цикл после загрузки данных
+}
+
+// entry point
+main().catch(error => {
+    console.error("Произошла ошибка в main:", error);
+});
+
+
+async function loadData() {
+    try {
+        console.log("Начинаем запрос...");
+        const response = await fetch('terrain4.json');
+        if (!response.ok) {
+            throw new Error('Ошибка получения JSON');
+        }
+
+        const data = await response.json();
+        console.log("Данные получены");
+
+        return data;
+    } catch (error) {
+        console.error("Произошла ошибка: ", error);
+        return null;
+    }
+}
+
+function transformData(data) {
+    terrainPointsDownside = data.terrain[0].map(point => ({
+        x: point.x * SQUARE_SIZE,
+        y: HEIGHT - point.y * SQUARE_SIZE
+    }));
+
+    terrainPointsUpside = data.terrain[1].map(point => ({
+        x: point.x * SQUARE_SIZE,
+        y: HEIGHT - point.y * SQUARE_SIZE
+    }));
+
+    landingZone = data.landingZone;
+    startZone = data.startZone;
+
+    // формула для расчета стартового положения ракеты
+    x = terrainPointsDownside[startZone].x + (rocketWidth / 2) + 5;
+    y = terrainPointsDownside[startZone].y - (rocketHeight / 2);
 }
 
 // Логика физики
@@ -162,11 +180,11 @@ function updatePhysics() {
     y += speedY; // Обновляем положение по Y
 
     rocketLeftX = x - rocketWidth / 2 + 2;
-    // rocketMiddleLeftX = x - rocketWidth / 4;
-    // rocketMiddleRightX = x + rocketWidth / 4;
     rocketRightX = x + rocketWidth / 2 - 2;
     rocketTopY = y - rocketHeight / 2;
     rocketBottomY = y + rocketHeight / 2;
+
+    updateRocketPoints();
 
     // Проверка столкновений
     checkCollision();
@@ -174,38 +192,46 @@ function updatePhysics() {
 
 function checkCollision() {
 
-    let checkCollisionForAllRocketPoints = [
-        [x, rocketTopY],
-        [rocketLeftX, rocketBottomY],
-        [rocketRightX, rocketBottomY],
-        [x, rocketBottomY]
-    ]
-
     let collisionIndexes = [];
-
+    // здесь мы проходим по всем квадратам из массива mapTriggers
+    // а затем проходим по массиву всех точек и проверяем нахождение точки в плоскости квадрата
     for (let i = 0; i < mapTriggers.length; i++) {
         // mapSquare = [
-        // [x1, x2],    [0, 15],
-        // [y1, y2]     [345, 360]
+        // [x1, x2],  example -> [0, 15],
+        // [y1, y2]              [345, 360]
         // ]
-        for (let j = 0; j < checkCollisionForAllRocketPoints.length; j++) {
+        for (let j = 0; j < rocketPoints.length; j++) {
             let mapSquare = mapTriggers[i];
             // проверка на то, что точка находится в площади игрового квадрата
-            if (mapSquare[0][0] <= checkCollisionForAllRocketPoints[j][0] + 1  &&
-                mapSquare[0][1] >= checkCollisionForAllRocketPoints[j][0] - 1 &&
-                mapSquare[1][0] <= checkCollisionForAllRocketPoints[j][1] &&
-                mapSquare[1][1] >= checkCollisionForAllRocketPoints[j][1] - 1) {
+            if (mapSquare[0][0] <= rocketPoints[j][0] + 1 &&
+                mapSquare[0][1] >= rocketPoints[j][0] - 1 &&
+                mapSquare[1][0] <= rocketPoints[j][1] &&
+                mapSquare[1][1] >= rocketPoints[j][1] - 1) {
 
                 // определяем с какой точкой было соприкосновение и записываем в массив
                 switch (j) {
                     case 0:
-                        collisionIndexes.push(collisionMessage.TOP); break;
                     case 1:
-                        collisionIndexes.push(collisionMessage.LEFTBOTTOM); break;
                     case 2:
-                        collisionIndexes.push(collisionMessage.RIGHTBOTTOM); break;
                     case 3:
-                        collisionIndexes.push(collisionMessage.MIDDLEBOTTOM); break;
+                        collisionIndexes.push(collisionMessage.SIDE);
+                        break;
+                    case 4:
+                    case 5:
+                    case 6:
+                        collisionIndexes.push(collisionMessage.TOP);
+                        break;
+                    case 7:
+                    case 8:
+                        collisionIndexes.push(collisionMessage.LEFTENGINE);
+                        break;
+                    case 9:
+                    case 10:
+                        collisionIndexes.push(collisionMessage.RIGHTENGINE);
+                        break;
+                    case 11:
+                        collisionIndexes.push(collisionMessage.MIDDLEBOTTOM);
+                        break;
                 }
             }
         }
@@ -221,27 +247,24 @@ function checkCollision() {
         speedY = 0;
         onGround = true;
 
-        return 6; // пока пусть возвращает 6
+        return 0;
     }
-
     // проверка на landing zone
     if (checkLandingZone() && rocketBottomY >= terrainPointsDownside[landingZone].y) {
         if (Math.abs(speedY) > landingSpeedThreshold || Math.abs(speedX) > landingSpeedThreshold)
             showCollisionModal(gameMessageArray[3]);
         else
             showCollisionModal(gameMessageArray[0]);
-        return 6;
+        return 0;
     }
-
     // Проверка боковых сторон
     if (rocketLeftX < 0 || rocketRightX > WIDTH) {
-        return 1;
+        return 0;
     }
     // Проверка верхней стороны
     if (rocketTopY < 0) {
-        return 2;
+        return 0;
     }
-
     // если хоть 1 точка пересеклась с ландшафтом, то вызываем сообщение для этой точки
     if (collisionIndexes.length > 0) {
         showCollisionModal(collisionIndexes[0]);
@@ -274,10 +297,6 @@ function gameLoop() {
     drawRocket();    // Рисуем ракету
     drawFuelBar(); // Отрисовка шкалы топлива
 
-    //
-    ctx.beginPath();
-    ctx.arc(5, 350, 3, 0, 2 * Math.PI);
-    ctx.fill();
 //
     requestAnimationFrame(gameLoop);
 }
@@ -312,8 +331,8 @@ function drawTerrain() {
     // используем landingZone и landingZone + 1
     ctx.moveTo(terrainPointsDownside[landingZone].x, terrainPointsDownside[landingZone].y);
     ctx.lineTo(terrainPointsDownside[landingZone + 1].x, terrainPointsDownside[landingZone + 1].y);
-    ctx.strokeStyle = 'green';
-    ctx.lineWidth = 3; // толщина зелёной линии
+    ctx.strokeStyle = '#1af403';
+    ctx.lineWidth = 4; // толщина зелёной линии
     ctx.stroke();
     ctx.closePath();
 
@@ -323,7 +342,7 @@ function drawTerrain() {
     ctx.moveTo(terrainPointsDownside[startZone].x, terrainPointsDownside[startZone].y);
     ctx.lineTo(terrainPointsDownside[startZone + 1].x, terrainPointsDownside[startZone + 1].y);
     ctx.strokeStyle = '#16e1e1';
-    ctx.lineWidth = 3; // толщина зелёной линии
+    ctx.lineWidth = 4; // толщина зелёной линии
     ctx.stroke();
     ctx.closePath();
 
@@ -408,47 +427,12 @@ function drawRocket() {
 
 //Метод для отрисовки точек столкновения.
 function drawRocketPoints() {
-
-    // ctx.fillStyle = 'blue';
-    // for (let i = 0; i < rocketPoints.length; i++) {
-    //     ctx.beginPath();
-    //     ctx.arc(rocketPoints[i][0], rocketPoints[i][1], 2, 0, 2 * Math.PI);
-    //     ctx.fill();
-    // }
-
     ctx.fillStyle = 'blue';
-    // Верх
-    ctx.beginPath();
-    ctx.arc(rocketLeftX , rocketTopY, 3, 0, 2 * Math.PI);
-    ctx.fill();
-
-    // точка 3/4 до верха
-    ctx.beginPath();
-    ctx.arc(rocketLeftX, rocketTopY, 3, 0, 2 * Math.PI);
-    ctx.fill();
-
-    ctx.beginPath();
-    ctx.arc(rocketRightX, rocketTopY, 3, 0, 2 * Math.PI);
-    ctx.fill();
-
-    // точка 1/2 до верха
-    ctx.beginPath();
-    ctx.arc(rocketLeftX, rocketTopY , 3, 0, 2 * Math.PI);
-    ctx.fill();
-
-    // Нижний левый угол
-    ctx.beginPath();
-    ctx.arc(rocketLeftX, rocketBottomY, 3, 0, 2 * Math.PI);
-    ctx.fill();
-    // Нижний правый угол
-    ctx.beginPath();
-    ctx.arc(rocketRightX, rocketBottomY, 3, 0, 2 * Math.PI);
-    ctx.fill();
-    // Центральная нижняя точка
-    ctx.beginPath();
-    ctx.arc(x, rocketBottomY, 3, 0, 2 * Math.PI);
-    ctx.fill();
-
+    for (let i = 0; i < rocketPoints.length; i++) {
+        ctx.beginPath();
+        ctx.arc(rocketPoints[i][0], rocketPoints[i][1], 2, 0, 2 * Math.PI);
+        ctx.fill();
+    }
 }
 
 function drawFuelBar() {
@@ -636,4 +620,25 @@ function calculateSquares(mode) {
         // закрашиваем «прилегающие» квадраты
         fillSquaresForSegment(ctx, p1, p2, direction, mode, "up");
     }
+}
+
+function updateRocketPoints() {
+    rocketPoints.length = 0; // обнуляем предыдущий массив с точками, потому что там старые координаты
+    // пересчитываем координаты
+    rocketPoints.push([x - 3 * oneRocketImagePixelWidth, y]);   // SIDE
+    rocketPoints.push([x + 3 * oneRocketImagePixelWidth, y]);   // SIDE
+    rocketPoints.push([x - 4 * oneRocketImagePixelWidth, y + 2 * oneRocketImagePixelHeight]);  // SIDE
+    rocketPoints.push([x + 4 * oneRocketImagePixelWidth, y + 2 * oneRocketImagePixelHeight]);  // SIDE
+
+    rocketPoints.push([x, y - 5 * oneRocketImagePixelHeight]);                                  // TOP
+    rocketPoints.push([x - 3 * oneRocketImagePixelWidth, y - 3 * oneRocketImagePixelHeight]);   // TOP
+    rocketPoints.push([x + 3 * oneRocketImagePixelWidth, y - 3 * oneRocketImagePixelHeight]);   // TOP
+
+    rocketPoints.push([x - 5 * oneRocketImagePixelWidth, y + 5 * oneRocketImagePixelHeight]); // LEFT ENGINE
+    rocketPoints.push([x - 5 * oneRocketImagePixelWidth, y + 3 * oneRocketImagePixelHeight]); // LEFT ENGINE
+
+    rocketPoints.push([x + 5 * oneRocketImagePixelWidth, y + 5 * oneRocketImagePixelHeight]); // RIGHT ENGINE
+    rocketPoints.push([x + 5 * oneRocketImagePixelWidth, y + 3 * oneRocketImagePixelHeight]); // RIGHT ENGINE
+
+    rocketPoints.push([x, y + 5 * oneRocketImagePixelHeight]);  // MIDDLE BOTTOM
 }
