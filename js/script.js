@@ -80,8 +80,15 @@ let collisionMessage = {
 const rocketPoints = [];
 
 let mapTriggers = [];
+let developerMode = false;
 
-let developerMode = true;
+const devModeToggle = document.getElementById('devModeToggle');
+const devModeText = document.getElementById('devModeText'); // Reference the span for the text
+
+devModeToggle.addEventListener('change', () => {
+    developerMode = devModeToggle.checked; // Update the flag based on the checkbox state
+    devModeText.textContent = developerMode ? 'DevMode ON' : 'DevMode OFF'; // Update the text
+});
 
 async function main() {
     const data = await loadData();
