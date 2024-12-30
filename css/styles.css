@@ -9,7 +9,7 @@ body {
     display: flex;
     align-items: center;
 }
-body, button {
+body, button, switch {
     user-select: none;
     word-wrap: break-word; /* Позволяет переносить текст */
     white-space: normal; /* Разрешаем перенос строк */
@@ -24,6 +24,8 @@ body, button {
     justify-content: center; /* По центру горизонтали */
     align-items: center;
     gap: 20px;
+    animation: fadeIn 0.6s ease-out; /* Анимация появления */
+    animation-fill-mode: forwards; /* Сохраняем конечное состояние */
 }
 
 /* Стили для кнопок в верхней панели */
@@ -53,6 +55,7 @@ canvas {
     border-radius: 10px;
     box-shadow: 0 0 40px rgba(88, 0, 255, 0.4), 0 0 60px rgba(255, 255, 255, 0.1);
     width: 100%;
+    animation: fadeIn 0.7s ease-out; /* Добавляем плавное появление */
 }
 /* ========== МОДАЛЬНОЕ ОКНО (неоновый стиль) ========== */
 .modal {
@@ -120,6 +123,7 @@ canvas {
     display: flex;
     flex-direction: column;
     align-items: center;
+    gap: 5px;
 }
 /* Style for the toggle switch */
 .switch {
@@ -166,6 +170,66 @@ input:checked + .slider {
 
 input:checked + .slider:before {
     transform: translateX(26px);
+}
+.level-info{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+/* Стиль модального окна для сообщения */
+#messageModal .modal-content {
+    background: linear-gradient(145deg, #1d0145, #350168);
+    color: #fff;
+    padding: 20px;
+    border-radius: 16px;
+    text-align: center;
+    box-shadow: 0 0 20px rgba(88, 0, 255, 0.5), 0 0 40px rgba(255, 255, 255, 0.2);
+    max-width: 400px;
+    animation: fadeIn 0.3s ease-out;
+    position: relative;
+    font-family: 'Arial', sans-serif;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+#messageModal h2 {
+    font-size: 24px;
+    margin-bottom: 15px;
+}
+
+#messageModal p {
+    font-size: 16px;
+    margin-bottom: 20px;
+}
+
+.help-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+#helpBtn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+}
+
+#helpBtn i {
+    font-size: 24px;
+    color: #fff;
+    transition: color 0.3s;
+}
+
+#helpBtn:hover i {
+    color: #6d00dc;
+}
+
+
+#levelIndicator {
+    font-size: 14px;
+    font-weight: bold;
+    margin-right: 10px;
+    color: #fff;
 }
 
 /* Media queries для адаптации на мобильных устройствах */

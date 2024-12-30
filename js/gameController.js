@@ -15,7 +15,6 @@ window.addEventListener('DOMContentLoaded', () => {
     // "Пауза" (кнопка в верхней панели)
     if (pauseBtn) {
         pauseBtn.addEventListener('click', () => {
-            gamePaused = true;
             showPauseModal();
         });
     }
@@ -45,9 +44,7 @@ window.addEventListener('DOMContentLoaded', () => {
     // Столкновение - Кнопка "Следующий уровень"
     if (nextLevelBtn) {
         nextLevelBtn.addEventListener('click', () => {
-            // Пока что уровней нет — просто alert
-            // Позже можно сделать логику смены terrain.json
-            alert('Переход на следующий уровень (пока не реализовано)');
+            goToNextLevel();
         });
     }
     // КНОПКИ ВНУТРИ ОКНА ПАУЗЫ
@@ -73,7 +70,7 @@ window.addEventListener('DOMContentLoaded', () => {
     // Пауза — «Следующий уровень»
     if (pauseNextLevelBtn) {
         pauseNextLevelBtn.addEventListener('click', () => {
-            alert('Переход на следующий уровень (пока не реализовано)');
+            goToNextLevel();
         });
     }
 });
@@ -83,20 +80,58 @@ function showCollisionModal(message) {
     const modal = document.getElementById('collisionModal');
     const collisionText = document.getElementById('collisionText');
     const nextLevelBtn  = document.getElementById('nextLevelBtn');
-
     collisionText.textContent = message;
     modal.style.display = 'flex';
 
-    // Если успех (gameMessageArray[0] = 'Посадка удалась!'), включаем nextLevelBtn
     if (message === collisionMessage.SUCCESS) {
+        // Уровень пройден
+        levelPassed = true;
         nextLevelBtn.disabled = false;
     } else {
-        // Иначе отключаем
-        nextLevelBtn.disabled = true;
+        nextLevelBtn.disabled = !levelPassed;
     }
-
     gamePaused = true;
 }
+
+
+// Всякий раз, когда вызываем то проверяем:
+// 1) Если текущий пройден, тогда переходим к следующему индексу в текущей сложности.
+// 2) Если уровни текущей сложности закончились, переключаемся на следующую.
+// 3) Загружаем этот уровень (loadCurrentLevel).
+function goToNextLevel() {
+    if (!levelPassed) {
+        // Нельзя переходить к следующему уровню, если текущий не прошли
+        alert("Сначала пройдите текущий уровень.");
+        return;
+    }
+
+    // Переходим к следующему индексу
+    currentLevelIndex++;
+
+    // Проверяем, не вышли ли за пределы массива:
+    if (currentDifficulty === 'easy' && currentLevelIndex >= easyLevels.length) {
+        // Переходим на medium
+        currentDifficulty = 'medium';
+        currentLevelIndex = 0;
+    }
+    if (currentDifficulty === 'medium' && currentLevelIndex >= mediumLevels.length) {
+        // Переходим на hard
+        currentDifficulty = 'hard';
+        currentLevelIndex = 0;
+    }
+
+    // Если мы дошли до hard и её прошли — теоретически это финал
+    if (currentDifficulty === 'hard' && currentLevelIndex >= hardLevels.length) {
+        alert("Вы прошли все уровни! Игра окончена.");
+        // Можно вернуть в меню или обнулить всё
+    }
+    levelPassed = false;
+    // Грузим новый уровень
+    hidePauseModal();
+    hideCollisionModal();
+    loadCurrentLevel();
+}
+
 
 function hideCollisionModal() {
     const modal = document.getElementById('collisionModal');
@@ -108,15 +143,39 @@ function hideCollisionModal() {
 function showPauseModal() {
     const pauseModal = document.getElementById('pauseModal');
     const pauseNextLevelBtn = document.getElementById('pauseNextLevelBtn');
-    // Пока что не знаем, приземлились ли мы удачно — скорее всего нет,
-    // значит nextLevelBtn = disabled. Либо хотите всегда разрешить.
-    pauseNextLevelBtn.disabled = true; // например, пока отключим
-
+    pauseNextLevelBtn.disabled = !levelPassed;
     pauseModal.style.display = 'flex';
+    gamePaused = true;
 }
 
 function hidePauseModal() {
     const pauseModal = document.getElementById('pauseModal');
     pauseModal.style.display = 'none';
     gamePaused = false;
+}
+// Создание модального окна для сообщения
+function showMessageModal() {
+    const modal = document.getElementById('messageModal');
+    const levelTitle = document.getElementById('levelTitle');
+    const levelMessage = document.getElementById('levelMessage');
+
+    const levelData = getCurrentLevelData();
+    if (!levelData) return;
+    gamePaused = true;
+    // Заголовок - сложность уровня
+    levelTitle.textContent = levelData.difficulty.toUpperCase();
+    // Сообщение из JSON
+    levelMessage.textContent = levelData.message;
+
+    modal.style.display = 'flex';
+}
+function hideMessageModal() {
+    const modal = document.getElementById('messageModal');
+    modal.style.display = 'none';
+    gamePaused = false;
+}
+// Добавляем обработчик для кнопки "?"
+const helpBtn = document.getElementById('helpBtn');
+if (helpBtn) {
+    helpBtn.addEventListener('click', showMessageModal);
 }

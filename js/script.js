@@ -89,12 +89,84 @@ devModeToggle.addEventListener('change', () => {
     developerMode = devModeToggle.checked; // Update the flag based on the checkbox state
     devModeText.textContent = developerMode ? 'DevMode ON' : 'DevMode OFF'; // Update the text
 });
+// Массивы уровней по сложностям
+let easyLevels = [];
+let mediumLevels = [];
+let hardLevels = [];
+
+// Текущая сложность и индекс уровня в рамках этой сложности
+let currentDifficulty = 'easy';  // Начинаем с легких
+let currentLevelIndex = 0;
+let levelPassed = false;         // флаг «уровень пройден или нет»
+
+
 
 async function main() {
-    const data = await loadData();
+    // 1) Подгружаем JSON (вместо terrain4.json можно любой другой):
+    allLevelsJson = await loadData();
 
-    // получаем координаты в пикселях, landingZone, startingZone, x, y
-    transformData(data);
+    if (!allLevelsJson) {
+        console.error("Не удалось загрузить данные уровней.");
+        return;
+    }
+
+    // 2) Разделяем уровни по сложностям и перемешиваем
+    separateAndShuffleLevels(allLevelsJson);
+
+    // 3) Загружаем уровень
+    loadCurrentLevel();
+
+    updateRocketPoints();
+    gameLoop(); // Запускаем игровой цикл после загрузки данных
+}
+
+// entry point
+main().catch(error => {
+    console.error("Произошла ошибка в main:", error);
+});
+// Храним весь JSON, чтобы при смене уровня не делать fetch заново:
+let allLevelsJson = null;
+function separateAndShuffleLevels(jsonData) {
+    const { levels } = jsonData;
+
+    levels.forEach(lvl => {
+        if (lvl.difficulty === 'easy') {
+            easyLevels.push(lvl);
+        } else if (lvl.difficulty === 'medium') {
+            mediumLevels.push(lvl);
+        } else if (lvl.difficulty === 'hard') {
+            hardLevels.push(lvl);
+        }
+    });
+
+    // Перемешиваем каждый массив, чтобы уровни шли в рандомном порядке
+    shuffleArray(easyLevels);
+    shuffleArray(mediumLevels);
+    shuffleArray(hardLevels);
+}
+
+// Простая функция перемешивания массива (Fisher–Yates shuffle)
+function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+}
+// ========================
+//  ЗАГРУЗКА ТЕКУЩЕГО УРОВНЯ
+// ========================
+function loadCurrentLevel() {
+    let levelData = getCurrentLevelData();
+    if (!levelData) {
+        console.warn("Уровней данной сложности не осталось или массив пуст.");
+        return;
+    }
+    mapTriggers = [];
+    terrainPointsDownside = [];
+    terrainPointsUpside = [];
+
+    // Вызываем transformData, но уже для конкретного уровня
+    transformData(levelData);
 
     rocketLeftX = x - rocketWidth / 2 + 2;
     rocketRightX = x + rocketWidth / 2 - 2;
@@ -104,19 +176,63 @@ async function main() {
     updateRocketPoints();
 
     calculateSquares("init");
-    gameLoop(); // Запускаем игровой цикл после загрузки данных
+    showMessageModal();
+    updateLevelIndicator();
+    resetGame();
 }
 
-// entry point
-main().catch(error => {
-    console.error("Произошла ошибка в main:", error);
-});
-
+// Возвращаем конкретный уровень из нужного массива, по индексу
+function getCurrentLevelData() {
+    if(currentDifficulty === 'easy') {
+        if(easyLevels.length > 0){
+            return easyLevels[currentLevelIndex];
+        }
+        else{
+            currentDifficulty = 'medium';
+        }
+    }
+    if(currentDifficulty === 'medium') {
+        if(mediumLevels.length > 0){
+            return mediumLevels[currentLevelIndex];
+        }
+        else{
+            currentDifficulty = 'hard';
+        }
+    }
+    if(currentDifficulty === 'hard') {
+        if(hardLevels.length > 0){
+            return hardLevels[currentLevelIndex];
+        }
+        else{
+            return null;
+        }
+    }
+}
+function updateLevelIndicator() {
+    const levelIndicator = document.getElementById('levelIndicator');
+    if (!levelIndicator) return;
+    // Устанавливаем текст в зависимости от текущей сложности
+    levelIndicator.textContent = `${currentDifficulty.toUpperCase()}`;
+    // Устанавливаем цвет в зависимости от текущей сложности
+    switch (currentDifficulty) {
+        case 'easy':
+            levelIndicator.style.color = '#90EE90'; // Зеленый для легкого уровня
+            break;
+        case 'medium':
+            levelIndicator.style.color = 'orange'; // Оранжевый для среднего уровня
+            break;
+        case 'hard':
+            levelIndicator.style.color = 'red'; // Красный для сложного уровня
+            break;
+        default:
+            levelIndicator.style.color = 'white'; // Белый по умолчанию
+    }
+}
 
 async function loadData() {
     try {
         console.log("Начинаем запрос...");
-        const response = await fetch('terrain4.json');
+        const response = await fetch('terrain.json');
         if (!response.ok) {
             throw new Error('Ошибка получения JSON');
         }
@@ -258,6 +374,8 @@ function checkCollision() {
             showCollisionModal(collisionMessage.SUCCESS);
         return 0;
     }
+    let a = checkStartingZone();
+    let b = rocketBottomY >= terrainPointsDownside[startZone].y;
     // Проверка боковых сторон
     if (rocketLeftX < 0 || rocketRightX > WIDTH) {
         showCollisionModal(collisionMessage.OUTSIDE);

@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <title>Moon Lander — Game</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <!-- Space background/animations -->
   <link rel="stylesheet" href="css/global.css">
   <link rel="icon" href="assets/icon.png">
@@ -17,12 +17,11 @@
     <div class="top-panel">
       <button id="menuBtn">Menu</button>
       <button id="pauseBtn">Pause</button>
-      <div class="switch-dev-mode">
-        <span id="devModeText">DevMode OFF</span>
-        <label class="switch">
-          <input type="checkbox" id="devModeToggle">
-          <span class="slider round"></span>
-        </label>
+      <div class="level-info">
+        <span id="levelIndicator">EASY</span>
+        <button id="helpBtn" title="Help">
+          <i class="fa fa-question-circle"></i>
+        </button>
       </div>
     </div>
   <div class="canvas-container">
@@ -55,9 +54,23 @@
     <button id="pausePlayAgainBtn" class="modal-button">Try Again</button>
     <button id="pauseMenuBtn"      class="modal-button">Main Menu</button>
     <button id="pauseNextLevelBtn" class="modal-button">Next Level</button>
+    <div class="switch-dev-mode">
+      <label class="switch">
+        <input type="checkbox" id="devModeToggle">
+        <span class="slider round"></span>
+      </label>
+      <span id="devModeText">DevMode OFF</span>
+    </div>
   </div>
 </div>
-
+<!-- Modal for level message -->
+<div id="messageModal" class="modal">
+  <div class="modal-content">
+    <h2 id="levelTitle"></h2>
+    <p id="levelMessage"></p>
+    <button onclick="hideMessageModal()" class="modal-button">Close</button>
+  </div>
+</div>
 
 <!-- Game Scripts -->
 <script src="js/script.js"></script>
