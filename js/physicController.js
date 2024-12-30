@@ -56,11 +56,17 @@ if (window.DeviceOrientationEvent) {
 
 
 // Обработка касания
-document.addEventListener('touchstart', () => {
-    touchActive = true; // Включаем флаг при касании
+document.addEventListener('touchstart', (e) => {
+    const topPanel = document.querySelector('.top-panel');
+    if (!topPanel.contains(e.target)) {
+        touchActive = true; // Включаем флаг при касании, если это не в top-panel
+    }
 });
 
-document.addEventListener('touchend', () => {
-    touchActive = false; // Выключаем флаг при завершении касания
+document.addEventListener('touchend', (e) => {
+    const topPanel = document.querySelector('.top-panel');
+    if (!topPanel.contains(e.target)) {
+        touchActive = false; // Выключаем флаг при завершении касания, если это не в top-panel
+    }
 });
 

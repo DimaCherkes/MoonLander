@@ -374,8 +374,6 @@ function checkCollision() {
             showCollisionModal(collisionMessage.SUCCESS);
         return 0;
     }
-    let a = checkStartingZone();
-    let b = rocketBottomY >= terrainPointsDownside[startZone].y;
     // Проверка боковых сторон
     if (rocketLeftX < 0 || rocketRightX > WIDTH) {
         showCollisionModal(collisionMessage.OUTSIDE);
