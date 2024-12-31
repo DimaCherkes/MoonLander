@@ -50,6 +50,7 @@ body, button, switch {
     display: flex;
     justify-content: center;
 }
+
 canvas {
     border: 1px solid #333;
     border-radius: 10px;

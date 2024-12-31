@@ -74,7 +74,25 @@ window.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
+function saveGameProgress() { // (ИЗМЕНЕНО!) новая функция
+    const progressData = {
+        currentDifficulty,   // 'easy' | 'medium' | 'hard'
+        currentLevelIndex,   // число
+        levelPassed,         // bool
+    };
+    localStorage.setItem('moonLanderProgress', JSON.stringify(progressData));
+}
 
+function loadGameProgress() { // (ИЗМЕНЕНО!) новая функция
+    const dataStr = localStorage.getItem('moonLanderProgress');
+    if (!dataStr) return null;
+    try {
+        return JSON.parse(dataStr);
+    } catch(e) {
+        console.error('Ошибка парсинга сохранённого прогресса:', e);
+        return null;
+    }
+}
 // Переопределяем showCollisionModal, чтобы включать/выключать кнопку "Следующий уровень"
 function showCollisionModal(message) {
     const modal = document.getElementById('collisionModal');
@@ -90,6 +108,7 @@ function showCollisionModal(message) {
     } else {
         nextLevelBtn.disabled = !levelPassed;
     }
+    saveGameProgress();
     gamePaused = true;
 }
 
@@ -122,13 +141,14 @@ function goToNextLevel() {
 
     // Если мы дошли до hard и её прошли — теоретически это финал
     if (currentDifficulty === 'hard' && currentLevelIndex >= hardLevels.length) {
-        alert("Вы прошли все уровни! Игра окончена.");
-        // Можно вернуть в меню или обнулить всё
+        currentDifficulty = 'easy';
+        currentLevelIndex = 0;
     }
     levelPassed = false;
     // Грузим новый уровень
     hidePauseModal();
     hideCollisionModal();
+    saveGameProgress(); // Сохраним новое состояние (новая сложность/индекс)
     loadCurrentLevel();
 }
 

@@ -4,9 +4,19 @@ const playBtn   = document.getElementById('playBtn');
 const rulesBtn  = document.getElementById('rulesBtn');
 const backBtn   = document.getElementById('backBtn');
 const menuTitle = document.getElementById('menu-title');
+const startNewGameBtn = document.getElementById('startNewGameBtn');
 // On load: show the menu, hide the rules
 document.addEventListener('DOMContentLoaded', () => {
     showMenu();
+    // Проверяем, есть ли прогресс
+    const savedProgress = localStorage.getItem('moonLanderProgress');
+    if (!savedProgress) {
+        // Нет прогресса => disabled для playBtn
+        playBtn.disabled = true;
+    } else {
+        // Есть прогресс => можно нажимать Play
+        playBtn.disabled = false;
+    }
 });
 
 // "Play" button => redirect to game.html
@@ -28,9 +38,13 @@ rulesBtn.addEventListener('click', () => {
 backBtn.addEventListener('click', () => {
     showMenu();
 });
-
+startNewGameBtn.addEventListener('click', () => {
+    localStorage.removeItem('moonLanderProgress');
+    localStorage.removeItem('moonLanderLevelsOrder');
+    window.location.href = 'game.html';
+});
 function showMenu() {
     menuTitle.style.display  = 'block';
-    menuView.style.display  = 'block';
+    menuView.style.display  = 'flex';
     rulesView.style.display = 'none';
 }

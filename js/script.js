@@ -98,7 +98,7 @@ let hardLevels = [];
 let currentDifficulty = 'easy';  // Начинаем с легких
 let currentLevelIndex = 0;
 let levelPassed = false;         // флаг «уровень пройден или нет»
-
+let allLevelsJson = null; // хранит загруженный JSON
 
 
 async function main() {
@@ -113,6 +113,20 @@ async function main() {
     // 2) Разделяем уровни по сложностям и перемешиваем
     separateAndShuffleLevels(allLevelsJson);
 
+    // Перед тем, как загрузить уровень, восстанавливаем прогресс
+    const saved = loadGameProgress(); // функция из gameController.js
+    if (saved) {
+        currentDifficulty  = saved.currentDifficulty;
+        currentLevelIndex  = saved.currentLevelIndex;
+        levelPassed        = saved.levelPassed || false;
+        console.log("Прогресс загружен:", saved);
+    } else {
+        console.log("Нет сохранённого прогресса, начинаем с easy[0].");
+        currentDifficulty  = 'easy';
+        currentLevelIndex  = 0;
+        levelPassed        = false;
+    }
+
     // 3) Загружаем уровень
     loadCurrentLevel();
 
@@ -124,11 +138,39 @@ async function main() {
 main().catch(error => {
     console.error("Произошла ошибка в main:", error);
 });
-// Храним весь JSON, чтобы при смене уровня не делать fetch заново:
-let allLevelsJson = null;
-function separateAndShuffleLevels(jsonData) {
-    const { levels } = jsonData;
+function saveShuffledLevelsToLocalStorage(easyArr, mediumArr, hardArr) {
+    const storedData = {
+        easy: easyArr,
+        medium: mediumArr,
+        hard: hardArr
+    };
+    localStorage.setItem('moonLanderLevelsOrder', JSON.stringify(storedData));
+}
 
+function loadShuffledLevelsFromLocalStorage() {
+    const dataStr = localStorage.getItem('moonLanderLevelsOrder');
+    if (!dataStr) return null;
+    try {
+        return JSON.parse(dataStr);
+    } catch(e) {
+        console.error("Ошибка парсинга moonLanderLevelsOrder:", e);
+        return null;
+    }
+}
+
+function separateAndShuffleLevels(jsonData) {
+    // Проверяем, есть ли уже сохранённые массивы
+    const stored = loadShuffledLevelsFromLocalStorage();
+    if (stored) {
+        // Если есть, восстанавливаем
+        console.log("Используем уже сохранённый shuffle из localStorage");
+        easyLevels   = stored.easy   || [];
+        mediumLevels = stored.medium || [];
+        hardLevels   = stored.hard   || [];
+        return;
+    }
+    // Иначе — первый раз, формируем заново:
+    let { levels } = jsonData;
     levels.forEach(lvl => {
         if (lvl.difficulty === 'easy') {
             easyLevels.push(lvl);
@@ -138,11 +180,12 @@ function separateAndShuffleLevels(jsonData) {
             hardLevels.push(lvl);
         }
     });
-
     // Перемешиваем каждый массив, чтобы уровни шли в рандомном порядке
     shuffleArray(easyLevels);
     shuffleArray(mediumLevels);
     shuffleArray(hardLevels);
+    // Сохраняем результат
+    saveShuffledLevelsToLocalStorage(easyLevels, mediumLevels, hardLevels);
 }
 
 // Простая функция перемешивания массива (Fisher–Yates shuffle)

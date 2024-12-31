@@ -47,13 +47,26 @@
 }
 
 
-
+.menu-view{
+    display: flex;
+    width: 80%;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
 /* Кнопки меню */
 .menu-button {
     display: inline-block;
     padding: 12px 24px;
     margin: 8px;
     font-size: 16px;
+}
+#playBtn, #rulesBtn, #startNewGameBtn{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 80%;
+    height: 50px;     /* фиксированная высота */
 }
 #rulesView {
     display: none;
@@ -99,6 +112,10 @@
     margin: 15px 0; /* Отступы сверху и снизу */
 }
 
+#playBtn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
 
 
 /* Проверка высоты экрана */
@@ -108,5 +125,9 @@
     }
     .rules-text {
         max-height: 60%;
+    }
+    #menuView{
+        flex-direction: row;
+        width: 40%;
     }
 }
