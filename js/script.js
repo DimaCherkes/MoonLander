@@ -93,7 +93,8 @@ devModeToggle.addEventListener('change', () => {
 let easyLevels = [];
 let mediumLevels = [];
 let hardLevels = [];
-
+let allLevelsArr = [];
+let index = 0;
 // Текущая сложность и индекс уровня в рамках этой сложности
 let currentDifficulty = 'easy';  // Начинаем с легких
 let currentLevelIndex = 0;
@@ -119,12 +120,14 @@ async function main() {
         currentDifficulty  = saved.currentDifficulty;
         currentLevelIndex  = saved.currentLevelIndex;
         levelPassed        = saved.levelPassed || false;
+        index              = saved.index;
         console.log("Прогресс загружен:", saved);
     } else {
         console.log("Нет сохранённого прогресса, начинаем с easy[0].");
         currentDifficulty  = 'easy';
         currentLevelIndex  = 0;
         levelPassed        = false;
+        index              = 0;
     }
 
     // 3) Загружаем уровень
@@ -138,11 +141,12 @@ async function main() {
 main().catch(error => {
     console.error("Произошла ошибка в main:", error);
 });
-function saveShuffledLevelsToLocalStorage(easyArr, mediumArr, hardArr) {
+function saveShuffledLevelsToLocalStorage(easyArr, mediumArr, hardArr, allLevelsArr) {
     const storedData = {
         easy: easyArr,
         medium: mediumArr,
-        hard: hardArr
+        hard: hardArr,
+        all: allLevelsArr
     };
     localStorage.setItem('moonLanderLevelsOrder', JSON.stringify(storedData));
 }
@@ -167,11 +171,13 @@ function separateAndShuffleLevels(jsonData) {
         easyLevels   = stored.easy   || [];
         mediumLevels = stored.medium || [];
         hardLevels   = stored.hard   || [];
+        allLevelsArr = stored.all    || [];
         return;
     }
     // Иначе — первый раз, формируем заново:
     let { levels } = jsonData;
     levels.forEach(lvl => {
+        allLevelsArr.push(lvl);
         if (lvl.difficulty === 'easy') {
             easyLevels.push(lvl);
         } else if (lvl.difficulty === 'medium') {
@@ -185,7 +191,7 @@ function separateAndShuffleLevels(jsonData) {
     shuffleArray(mediumLevels);
     shuffleArray(hardLevels);
     // Сохраняем результат
-    saveShuffledLevelsToLocalStorage(easyLevels, mediumLevels, hardLevels);
+    saveShuffledLevelsToLocalStorage(easyLevels, mediumLevels, hardLevels, allLevelsArr);
 }
 
 // Простая функция перемешивания массива (Fisher–Yates shuffle)
@@ -414,7 +420,7 @@ function checkCollision() {
         if (Math.abs(speedY) > landingSpeedThreshold || Math.abs(speedX) > landingSpeedThreshold)
             showCollisionModal(collisionMessage.BADLANDING);
         else
-            showCollisionModal(collisionMessage.SUCCESS);
+            handleSuccessfulLanding();
         return 0;
     }
     // Проверка боковых сторон
@@ -438,6 +444,13 @@ function checkCollision() {
         } else {
             showCollisionModal(messages[0]);
         }
+    }
+}
+function handleSuccessfulLanding() {
+    if (index >= allLevelsArr.length-1) {
+        showCongratulationsModal("Congratulations! You've completed the game!");
+    } else {
+        showCollisionModal(collisionMessage.SUCCESS);
     }
 }
 

@@ -85,7 +85,6 @@ canvas {
     font-family: 'Arial', sans-serif;
     border: 2px solid rgba(255, 255, 255, 0.2);
 }
-
 @keyframes fadeIn {
     from {
         opacity: 0;
@@ -96,9 +95,14 @@ canvas {
         transform: scale(1);
     }
 }
-
+.congratsButtons{
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+}
 /* Текст внутри модалки (заголовок столкновения или «Пауза») */
-#collisionText, #pauseText {
+#collisionText, #pauseText, #congratulationText {
     font-size: 20px;
     font-weight: bold;
     margin-bottom: 20px;
@@ -192,10 +196,6 @@ input:checked + .slider:before {
     border: 2px solid rgba(255, 255, 255, 0.2);
 }
 
-#messageModal h2 {
-    font-size: 24px;
-    margin-bottom: 15px;
-}
 
 #messageModal p {
     font-size: 16px;

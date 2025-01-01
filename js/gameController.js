@@ -74,16 +74,17 @@ window.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
-function saveGameProgress() { // (ИЗМЕНЕНО!) новая функция
+function saveGameProgress() {
     const progressData = {
         currentDifficulty,   // 'easy' | 'medium' | 'hard'
-        currentLevelIndex,   // число
-        levelPassed,         // bool
+        currentLevelIndex,
+        levelPassed,
+        index
     };
     localStorage.setItem('moonLanderProgress', JSON.stringify(progressData));
 }
 
-function loadGameProgress() { // (ИЗМЕНЕНО!) новая функция
+function loadGameProgress() {
     const dataStr = localStorage.getItem('moonLanderProgress');
     if (!dataStr) return null;
     try {
@@ -126,7 +127,7 @@ function goToNextLevel() {
 
     // Переходим к следующему индексу
     currentLevelIndex++;
-
+    index++;
     // Проверяем, не вышли ли за пределы массива:
     if (currentDifficulty === 'easy' && currentLevelIndex >= easyLevels.length) {
         // Переходим на medium
@@ -141,8 +142,7 @@ function goToNextLevel() {
 
     // Если мы дошли до hard и её прошли — теоретически это финал
     if (currentDifficulty === 'hard' && currentLevelIndex >= hardLevels.length) {
-        currentDifficulty = 'easy';
-        currentLevelIndex = 0;
+        return;
     }
     levelPassed = false;
     // Грузим новый уровень
@@ -199,3 +199,26 @@ const helpBtn = document.getElementById('helpBtn');
 if (helpBtn) {
     helpBtn.addEventListener('click', showMessageModal);
 }
+function showCongratulationsModal(message) {
+    const modal = document.getElementById('congratulationsModal');
+    const congratulationText = document.getElementById('congratulationText');
+    congratulationText.textContent = message;
+    modal.style.display = 'flex';
+    gamePaused = true;
+    levelPassed = false;
+}
+function hideCongratulationsModal() {
+    const modal = document.getElementById('congratulationsModal');
+    modal.style.display = 'none';
+    gamePaused = false;
+}
+document.getElementById('mainMenuBtn').addEventListener('click', () => {
+    localStorage.removeItem('moonLanderProgress');
+    localStorage.removeItem('moonLanderLevelsOrder');
+    window.location.href = 'index.html';
+});
+
+document.getElementById('congratsPlayAgainBtn').addEventListener('click', () => {
+    hideCongratulationsModal();
+    resetGame();
+});
