@@ -10,6 +10,7 @@
   <link rel="icon" href="assets/icon.png">
   <!-- Styles for the game (Canvas, modals, etc.) -->
   <link rel="stylesheet" href="css/styles.css">
+  <link rel="manifest" href="manifest.json"> <!-- Подключение манифеста -->
 </head>
 <body>
 <div class="game-container">
@@ -87,16 +88,15 @@
 <script src="js/script.js"></script>
 <script src="js/physicController.js"></script>
 <script src="js/gameController.js"></script>
-
-<!-- If PWA is needed -->
 <script>
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
       navigator.serviceWorker.register('sw.js')
-              .then(() => console.log('Service Worker registered!'))
-              .catch(err => console.log('Service Worker registration failed: ', err));
+              .then(registration => console.log('Service Worker зарегистрирован:', registration))
+              .catch(error => console.error('Ошибка при регистрации Service Worker:', error));
     });
   }
 </script>
+
 </body>
 </html>

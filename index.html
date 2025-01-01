@@ -10,6 +10,7 @@
     <link rel="icon" href="assets/icon.png">
     <!-- Global styles (background, fonts, star animations, etc.) -->
     <link rel="stylesheet" href="css/global.css">
+    <link rel="manifest" href="manifest.json"> <!-- Подключение манифеста -->
 </head>
 <body>
 
@@ -95,6 +96,15 @@
 
 <!-- JS logic: toggling between menu and rules -->
 <script src="js/menu.js"></script>
+<script>
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('sw.js')
+                .then(registration => console.log('Service Worker зарегистрирован:', registration))
+                .catch(error => console.error('Ошибка при регистрации Service Worker:', error));
+        });
+    }
+</script>
 
 </body>
 </html>
