@@ -2,7 +2,7 @@
   "levels": [
     {
       "difficulty": "medium",
-      "message": "Welcome to the medium level! Try to land carefully on the designated zone.",
+      "message": "Welcome to the medium level! This level presents moderate difficulty with uneven terrain.",
       "terrain": [
         [{ "x": 0, "y": 16 },
           { "x": 4, "y": 16 },
@@ -82,7 +82,7 @@
     },
     {
       "difficulty": "medium",
-      "message": "Welcome to the medium level! Try to land carefully on the designated zone.",
+      "message": "Welcome to the medium level! This level presents moderate difficulty with uneven terrain.",
       "terrain": [
         [{ "x": 0, "y": 4 },
           { "x": 1, "y": 4 },
@@ -180,7 +180,7 @@
     },
     {
       "difficulty": "easy",
-      "message": "This is an easy level to help you practice landing smoothly.",
+      "message": "Welcome to the easy level! This level will help you practice a smooth landing.",
       "terrain": [
         [{ "x": 0, "y": 4 },
           { "x": 2, "y": 4 },
@@ -267,7 +267,7 @@
     },
     {
       "difficulty": "easy",
-      "message": "This is an easy level to help you practice landing smoothly.",
+      "message": "Welcome to the easy level! This level will help you practice a smooth landing.",
       "terrain": [
         [{ "x": 0, "y": 4 },
           { "x": 2, "y": 4 },
@@ -357,7 +357,7 @@
     },
     {
       "difficulty": "hard",
-      "message": "Prepare for a challenging adventure!",
+      "message": "Welcome to the hardest level! The rugged terrain and smaller landing zones will test your piloting skills to the fullest.",
       "terrain": [
         [{ "x": 0, "y": 17 },
           { "x": 1, "y": 17 },

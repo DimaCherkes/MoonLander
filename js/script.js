@@ -260,7 +260,7 @@ function updateLevelIndicator() {
     const levelIndicator = document.getElementById('levelIndicator');
     if (!levelIndicator) return;
     // Устанавливаем текст в зависимости от текущей сложности
-    levelIndicator.textContent = `${currentDifficulty.toUpperCase()}`;
+    levelIndicator.textContent = `${currentDifficulty.toUpperCase()} (${index+1}/${allLevelsArr.length})`;
     // Устанавливаем цвет в зависимости от текущей сложности
     switch (currentDifficulty) {
         case 'easy':
