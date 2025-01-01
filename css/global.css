@@ -18,6 +18,7 @@ html, body {
     background: #000; /* fallback цвет */
     position: relative;
 }
+
 body {
     background: url('../assets/background_canvas.png') no-repeat center center fixed; /* Добавляем изображение */
     background-size: cover; /* Картинка растягивается на весь экран */
@@ -45,6 +46,7 @@ button {
     cursor: pointer;
     box-shadow: 0 0 10px rgba(150, 50, 255, 0.4);
     transition: transform 0.2s, box-shadow 0.3s, background 0.3s;
+    font-family:'Audiowide', sans-serif;
 }
 button:hover {
     background: linear-gradient(135deg, #6d4eff, #b842d9);

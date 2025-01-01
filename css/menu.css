@@ -98,7 +98,10 @@
     margin-bottom: 15px;
     font-size: 24px;
 }
-
+kbd{
+    font-size: 16px;
+    color: #26e328;
+}
 /* Стили мини-заголовков */
 .rule-subtitle {
     color: #00ffcc; /* Бирюзовый цвет для подзаголовков */
@@ -116,6 +119,44 @@
     opacity: 0.4;
     cursor: not-allowed;
 }
+@media print {
+    /* Скрываем всё, кроме правил */
+    .menu-button {
+        display: none !important;
+    }
+    #rulesView {
+        display: block !important; /* Показываем правила */
+        position: static;
+        width: 100%;!important;
+        height: auto;!important;
+    }
+    .rule-subtitle {
+        color: #4a4a4a;!important;
+    }
+    .menu-popup {
+        width: auto; /* Убираем ограничения ширины */!important;
+        height: auto; /* Убираем ограничения высоты */!important;
+        max-width: none;!important;
+        max-height: none;!important;
+        box-shadow: none; /* Убираем тени */!important;
+        border: none; /* Убираем границы */!important;
+        background: red; /* Убираем фон */!important;
+    }
+    kbd{
+        color: #535353;
+    }
+    .rules-text {
+        color: #a1a1a1;
+        max-height: none; /* Убираем ограничения по высоте текста */
+        overflow: visible; /* Убираем скроллинг */
+    }
+    .rules-header {
+        color: #535353; /* Золотистый цвет для заголовка */
+        margin-bottom: 15px;
+        font-size: 24px;
+    }
+}
+
 
 
 /* Проверка высоты экрана */

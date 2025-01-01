@@ -66,17 +66,16 @@ const landingSpeedThreshold = 2.0;
 
 // Массив со всеми сообщениями для пользователя
 let collisionMessage = {
-    TOP: "Столкновение верхней частью.",
-    LEFTENGINE: "Вы зацепили левый двигатель.",
-    RIGHTENGINE: "Вы зацепили правый двигатель.",
-    MIDDLEBOTTOM: "Ракета должна касаться поверхности всей нижней частью.",
-    SIDE: "Столкновение боковой частью.",
-    SUCCESS: "Посадка удалась! Поздравляем!",
-    BADLANDING: "Жесткая посадка. Слишком большая скорость.",
-    NEARSTART: "Посадка мимо стартовой зоны. Вы задели непригодную поверхность.",
-    OUTSIDE: "Столкновение с краем экрана."
+    TOP: "Collision with the top part.",
+    LEFTENGINE: "You hit the left engine.",
+    RIGHTENGINE: "You hit the right engine.",
+    MIDDLEBOTTOM: "The rocket must touch the surface with the entire bottom part.",
+    SIDE: "Collision with the side part.",
+    SUCCESS: "Landing successful! Congratulations!",
+    BADLANDING: "Hard landing. Speed was too high.",
+    NEARSTART: "Landing outside the starting zone. You hit an unsuitable surface.",
+    OUTSIDE: "Collision with the edge of the screen."
 }
-
 const rocketPoints = [];
 
 let mapTriggers = [];
@@ -625,7 +624,7 @@ function drawFuelBar() {
 
     // Рамка шкалы
     ctx.strokeStyle = '#fff'; // Цвет рамки
-    ctx.lineWidth = 1;
+    ctx.lineWidth = 2;
     ctx.strokeRect(barX, barY, barWidth, barHeight);
 
     // Заполненная часть шкалы
@@ -635,7 +634,7 @@ function drawFuelBar() {
 
     // Текст уровня топлива
     ctx.fillStyle = '#fff';
-    ctx.font = '16px Arial';
+    ctx.font = '16px Audiowide';
     ctx.fillText(`Fuel: ${Math.round(fuel)}%`, barX, barY - 5); // Текст над шкалой
 }
 

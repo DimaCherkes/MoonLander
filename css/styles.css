@@ -5,7 +5,6 @@ body {
     margin: 0;
     padding: 0;
     color: #fff;
-    font-family: sans-serif;
     display: flex;
     align-items: center;
 }
@@ -82,7 +81,7 @@ canvas {
     max-width: 400px;
     animation: fadeIn 0.3s ease-out;
     position: relative;
-    font-family: 'Arial', sans-serif;
+    font-family: 'Audiowide', sans-serif;
     border: 2px solid rgba(255, 255, 255, 0.2);
 }
 @keyframes fadeIn {
@@ -111,7 +110,7 @@ canvas {
 }
 
 .modal-button {
-    font-size: 14px;
+    font-size: 12px;
     padding: 10px 20px;
     margin: 5px;
     text-transform: uppercase;
@@ -192,7 +191,7 @@ input:checked + .slider:before {
     max-width: 400px;
     animation: fadeIn 0.3s ease-out;
     position: relative;
-    font-family: 'Arial', sans-serif;
+    font-family: 'Audiowide', sans-serif;
     border: 2px solid rgba(255, 255, 255, 0.2);
 }
 
@@ -277,6 +276,20 @@ input:checked + .slider:before {
     }
 
 }
+/* ========== STYLES.CSS ========== */
+
+/* ПЕЧАТЬ: показываем только описание и инструкции */
+@media print {
+    /* Убираем любые декоративные элементы */
+    .modal,
+    .game-container,
+    .top-panel,
+    .modal-content,
+    canvas {
+        display: none !important;
+    }
+}
+
 @media (max-height: 300px) {
     canvas {
         height: 250px; /* Уменьшаем высоту канваса */
