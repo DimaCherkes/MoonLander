@@ -21,6 +21,31 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // "Play" button => redirect to game.html
 playBtn.addEventListener('click', () => {
+    // Проверяем, поддерживается ли DeviceOrientationEvent
+    if (typeof DeviceOrientationEvent !== 'undefined') {
+        // Проверяем, требуется ли запрос разрешения (iOS 13+)
+        if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+            DeviceOrientationEvent.requestPermission()
+                .then((permissionState) => {
+                    if (permissionState === 'granted') {
+                        // Разрешение получено => вешаем обработчик
+                        window.addEventListener('deviceorientation', handleOrientation);
+                        console.log('Гироскоп разрешён пользователем (iOS).');
+                    } else {
+                        alert("Gyroscope access was denied. Please enable it in device settings.");
+                    }
+                })
+                .catch((err) => {
+                    console.error("Ошибка при запросе разрешения на гироскоп:", err);
+                });
+        } else {
+            // Android / Десктоп / iOS < 13 — разрешение не нужно
+            window.addEventListener('deviceorientation', handleOrientation);
+            console.log("DeviceOrientationEvent доступен без запроса разрешения.");
+        }
+    } else {
+        console.log("DeviceOrientationEvent не поддерживается в этом браузере.");
+    }
     window.location.href = 'game.html';
 });
 
@@ -39,6 +64,31 @@ backBtn.addEventListener('click', () => {
     showMenu();
 });
 startNewGameBtn.addEventListener('click', () => {
+    // Проверяем, поддерживается ли DeviceOrientationEvent
+    if (typeof DeviceOrientationEvent !== 'undefined') {
+        // Проверяем, требуется ли запрос разрешения (iOS 13+)
+        if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+            DeviceOrientationEvent.requestPermission()
+                .then((permissionState) => {
+                    if (permissionState === 'granted') {
+                        // Разрешение получено => вешаем обработчик
+                        window.addEventListener('deviceorientation', handleOrientation);
+                        console.log('Гироскоп разрешён пользователем (iOS).');
+                    } else {
+                        alert("Gyroscope access was denied. Please enable it in device settings.");
+                    }
+                })
+                .catch((err) => {
+                    console.error("Ошибка при запросе разрешения на гироскоп:", err);
+                });
+        } else {
+            // Android / Десктоп / iOS < 13 — разрешение не нужно
+            window.addEventListener('deviceorientation', handleOrientation);
+            console.log("DeviceOrientationEvent доступен без запроса разрешения.");
+        }
+    } else {
+        console.log("DeviceOrientationEvent не поддерживается в этом браузере.");
+    }
     localStorage.removeItem('moonLanderProgress');
     localStorage.removeItem('moonLanderLevelsOrder');
     window.location.href = 'game.html';
