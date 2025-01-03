@@ -69,11 +69,10 @@ let collisionMessage = {
     TOP: "Collision with the top part.",
     LEFTENGINE: "You hit the left engine.",
     RIGHTENGINE: "You hit the right engine.",
-    MIDDLEBOTTOM: "The rocket must touch the surface with the entire bottom part.",
+    MIDDLEBOTTOM: "The rocket must touch the surface with all lower parts in the landing zone.",
     SIDE: "Collision with the side part.",
     SUCCESS: "Landing successful! Congratulations!",
     BADLANDING: "Hard landing. Speed was too high.",
-    NEARSTART: "Landing outside the starting zone. You hit an unsuitable surface.",
     OUTSIDE: "Collision with the edge of the screen."
 }
 const rocketPoints = [];
@@ -435,16 +434,14 @@ function checkCollision() {
 
     // если хоть 1 точка пересеклась с ландшафтом, то вызываем сообщение для этой точки
     if (messages.length > 0) {
-        if (rocketBottomY >= terrainPointsDownside[startZone].y) {
-            showCollisionModal(collisionMessage.NEARSTART);
-        }
-        else if (messages.includes(collisionMessage.MIDDLEBOTTOM)){
+        if (messages.includes(collisionMessage.MIDDLEBOTTOM)){
             showCollisionModal(collisionMessage.MIDDLEBOTTOM);
         } else {
             showCollisionModal(messages[0]);
         }
     }
 }
+
 function handleSuccessfulLanding() {
     if (index >= allLevelsArr.length-1) {
         showCongratulationsModal("Congratulations! You've completed the game!");
