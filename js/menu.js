@@ -5,7 +5,6 @@ const rulesBtn  = document.getElementById('rulesBtn');
 const backBtn   = document.getElementById('backBtn');
 const menuTitle = document.getElementById('menu-title');
 const startNewGameBtn = document.getElementById('startNewGameBtn');
-// On load: show the menu, hide the rules
 document.addEventListener('DOMContentLoaded', () => {
     showMenu();
     // Проверяем, есть ли прогресс

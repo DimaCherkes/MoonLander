@@ -24,7 +24,7 @@ backgroundImage.src = 'assets/background_canvas.png'; //Путь к тексту
 let rocketWidth = 50;  // Ширина ракеты
 let rocketHeight = 60; // Высота ракеты
 const rocketImage = new Image();
-rocketImage.src = 'assets/rocket.png'; // Укажите путь к изображению ракеты
+rocketImage.src = 'assets/rocket.png';
 const oneRocketImagePixelWidth = rocketWidth / 10;
 const oneRocketImagePixelHeight = rocketHeight / 10;
 

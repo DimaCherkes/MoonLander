@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
+    <meta charset="UTF-8">
     <title>Moon Lander — Menu</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <!-- Styles for the menu -->
     <link rel="stylesheet" href="css/menu.css">
@@ -33,8 +33,8 @@
                     challenges without crashing. You can control the rocket in two different ways:
                 </p>
                 <p>
-                    <strong class="rule-subtitle">· Keyboard (Desktop):</strong> Use arrow keys <kbd>↑</kbd><kbd>←</kbd><kbd>→</kbd>
-                    or <kbd>W</kbd><kbd>A</kbd><kbd>D</kbd> for vertical/horizontal movement.
+                    <strong class="rule-subtitle">· Keyboard (Desktop):</strong> Use arrow keys <kbd> ↑ </kbd><kbd> ← </kbd><kbd> → </kbd>
+                    or <kbd>W </kbd><kbd> A </kbd><kbd> D</kbd> for vertical/horizontal movement.
                 </p>
                 <p>
                     <strong class="rule-subtitle">· Gyroscope (Mobile/Tablet):</strong> Tilt your device to steer the rocket.
@@ -79,6 +79,7 @@
                     <strong class="rule-subtitle">Hints & Solutions:</strong> Each task may include a hint button or
                     even a solution if needed. However, using them might reduce your final score!
                 </p>
+                <hr class="rule-divider">
                 <p>
                     Good luck, and enjoy the lunar adventure!
                 </p>
@@ -97,8 +98,8 @@
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
             navigator.serviceWorker.register('sw.js')
-                .then(registration => console.log('Service Worker зарегистрирован:', registration))
-                .catch(error => console.error('Ошибка при регистрации Service Worker:', error));
+                .then(registration => console.log('Service Worker registered:', registration))
+                .catch(error => console.error('Error during Service Worker registration:', error));
         });
     }
 </script>

@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>Moon Lander — Game</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <!-- Space background/animations -->
   <link rel="stylesheet" href="css/global.css">
@@ -36,7 +36,7 @@
 <div id="collisionModal" class="modal">
   <div class="modal-content">
     <span id="collisionText"></span>
-    <br /><br />
+    <br><br>
     <!-- Three buttons -->
     <button id="playAgainBtn"   class="modal-button">Try Again</button>
     <button id="menuModalBtn"   class="modal-button">Main Menu</button>
@@ -48,7 +48,7 @@
 <div id="pauseModal" class="modal">
   <div class="modal-content">
     <span id="pauseText">Paused</span>
-    <br /><br />
+    <br><br>
     <!-- New button: Resume game -->
     <button id="pauseResumeBtn" class="modal-button">Resume Game</button>
 
@@ -68,7 +68,7 @@
 <div id="messageModal" class="modal">
   <div class="modal-content">
       <h2 id="levelTitle"></h2>
-      <br /><br />
+      <br><br>
       <p id="levelMessage"></p>
       <button onclick="hideMessageModal()" class="modal-button">Close</button>
   </div>
@@ -76,7 +76,7 @@
 <div id="congratulationsModal" class="modal">
   <div class="modal-content">
     <span id="congratulationText"></span>
-    <br /><br />
+    <br><br>
     <div class="congratsButtons">
       <button id="congratsPlayAgainBtn" class="modal-button">Try Again</button>
       <button id="mainMenuBtn" class="modal-button">Main Menu</button>
@@ -92,8 +92,8 @@
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
       navigator.serviceWorker.register('sw.js')
-              .then(registration => console.log('Service Worker зарегистрирован:', registration))
-              .catch(error => console.error('Ошибка при регистрации Service Worker:', error));
+              .then(registration => console.log('Service Worker registered:', registration))
+              .catch(error => console.error('Error during Service Worker registration:', error));
     });
   }
 </script>

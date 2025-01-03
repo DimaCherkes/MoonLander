@@ -11,7 +11,10 @@ window.addEventListener('DOMContentLoaded', () => {
     const menuBtn         = document.getElementById('menuBtn'); // сверху
     const pauseBtn        = document.getElementById('pauseBtn'); // сверху
     const pauseResumeBtn      = document.getElementById('pauseResumeBtn');
-
+    const helpBtn = document.getElementById('helpBtn');
+    if (helpBtn) {
+        helpBtn.addEventListener('click', showMessageModal);
+    }
     // "Пауза" (кнопка в верхней панели)
     if (pauseBtn) {
         pauseBtn.addEventListener('click', () => {
@@ -194,11 +197,7 @@ function hideMessageModal() {
     modal.style.display = 'none';
     gamePaused = false;
 }
-// Добавляем обработчик для кнопки "?"
-const helpBtn = document.getElementById('helpBtn');
-if (helpBtn) {
-    helpBtn.addEventListener('click', showMessageModal);
-}
+
 function showCongratulationsModal(message) {
     const modal = document.getElementById('congratulationsModal');
     const congratulationText = document.getElementById('congratulationText');
